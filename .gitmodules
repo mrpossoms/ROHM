@@ -1,0 +1,6 @@
+[submodule "deps/libgeotiff"]
+	path = deps/libgeotiff
+	url = https://github.com/OSGeo/libgeotiff
+[submodule "deps/PROJ"]
+	path = deps/PROJ
+	url = git@github.com:OSGeo/PROJ.git
