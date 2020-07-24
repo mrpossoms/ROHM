@@ -1,32 +1,41 @@
 #pragma once
 
-namespace rhom
+#include <stdlib.h>
+
+namespace rohm
 {
 
 struct coord
 {
 	double lat, lng;
+
+	bool operator==(const coord& other) { return other.lat == lat && other.lng == lng; }
 };
 
 struct window
 {
-	struct { coord nw, se; } corners;
+	coord corner_nw, corner_se;
 
 	coord corner(size_t ci)
 	{
 		switch(ci)
 		{
 			case 0:
-				return corners.nw;
+				return corner_nw;
 			case 1:
-				return { corners.nw.lat, corners.se.lng; };
+				return { corner_nw.lat, corner_se.lng };
 			case 2:
-				return corners.se;
+				return corner_se;
 			case 3:
-				return { corners.se.lat, corners.nw.lng; };
+				return { corner_se.lat, corner_nw.lng };
 			default:
 				return {};
 		}
+	}
+
+	bool operator==(const window& other)
+	{
+		return corner_nw == other.corner_nw && corner_se == other.corner_se;
 	}
 };
 
@@ -43,6 +52,6 @@ struct estimate_params
 	vehicle_params car;
 };
 
-void estimate(size_t r, size_t c, float energy_map_out[r][c], estimate_params params);
+void estimate(size_t r, size_t c, float** energy_map_out, estimate_params params);
 
 }

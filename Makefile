@@ -5,7 +5,7 @@ LIB+=
 LINK+=-lm
 CPP_FLAGS+=
 
-src/%.cpp.o: src/%.cpp
+src/%.cpp.o: src/%.cpp lib/$(TARG)
 	$(CXX) $(CPP_FLAGS) $(INC) $(LIB) -c $< -o $@
 
 lib/$(TARG):
@@ -14,7 +14,11 @@ lib/$(TARG):
 lib/$(TARG)/librohm.a: $(OBJS)
 	ar -crs $@ $^	
 
-.PHONY: librohm
+.PHONY: librohm clean
 librohm: lib/$(TARG)/librohm.a
 	@echo "Built librohm"
+
+clean:
+	rm src/*.o
+	rm -rf lib
 	

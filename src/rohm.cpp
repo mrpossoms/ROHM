@@ -1,5 +1,5 @@
 #include "rohm.h"
-#include <tiff.h>
+#include <tiffio.h>
 
 bool get_tile_idx(rohm::coord c, size_t& r_out, size_t& c_out)
 {
@@ -13,12 +13,23 @@ bool get_tile_idx(rohm::coord c, size_t& r_out, size_t& c_out)
 }
 
 
+rohm::window get_tile_window(size_t r, size_t c)
+{
+	static rohm::window tiles[2][4] = {
+		{ {{90, -180}, {0, -90}}, {{90, -90}, {0, 0}}, {{90, 0}, {0, -90}}, {{90, 90}, {0, 180}} },
+		{ {{0, -180}, {-90, -90}}, {{0, -90}, {-90, 0}}, {{0, 0}, {-90, -90}}, {{0, 90}, {-90, 180}}},
+	};
+
+	return tiles[r][c];
+}
+
+
 void rohm::estimate(
 	size_t r, size_t c,
-	float energy_map_out[r][c],
+	float** energy_map_out,
 	estimate_params params)
 {
-	static char* TILE_NAMES[2][4] = {
+	static const char* TILE_NAMES[2][4] = {
 		{ "A1", "B1", "C1", "D1" },
 		{ "A2", "B2", "C2", "D2" },
 	};
