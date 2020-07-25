@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <initializer_list>
+#include <string.h>
 
 namespace rohm
 {
@@ -72,6 +73,13 @@ struct vec
 		return *this;
 	}
 
+	double mag()
+	{
+		double m = 0;
+		for (int i = N; i--;) { m += v[i] * v[i]; }
+		return sqrt(m);
+	}
+
 	double v[N];
 };
 
@@ -79,15 +87,7 @@ struct coord : public vec<2>
 {
 	coord () : vec<2>() {}
 	coord (double lat, double lng) : vec<2>({ lat, lng }) { }
-	// double lat, lng;
 
-	// bool operator==(const coord& o) { return o.lat == lat && o.lng == lng; }
-	// coord operator-(const coord& o) { return { lat - o.lat, lng - o.lng }; }
-	// coord operator+(const coord& o) { return { lat + o.lat, lng + o.lng }; }
-	// coord operator*(double s) { return { lat * s, lng * s }; }
-	// coord operator-=(const coord& o) { lat -= o.lat; lng -= o.lng; }
-	// coord operator/=(const coord& o) { lat /= o.lat; lng /= o.lng; }
-	
 	inline double lat() const { return v[0]; }
 	inline double lng() const { return v[1]; }
 
@@ -142,6 +142,14 @@ struct estimate_params
 	vehicle_params car;
 };
 
-void estimate(size_t r, size_t c, float** energy_map_out, estimate_params params);
+struct estimate_cell
+{
+	bool visited;
+	coord location;
+	float elevation_m;
+	float energy_kwh;
+}
+
+void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
 
 }

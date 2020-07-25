@@ -2,10 +2,6 @@
 #include <tiffio.h>
 #include <math.h>
 
-struct vec3
-{
-	double x, y, z;
-};
 
 vec3 gcs_to_ecef_km(rohm::coord c)
 {
@@ -52,22 +48,28 @@ rohm::window get_tile_window(size_t r, size_t c)
 }
 
 
-bool coord_to_idx(TIFF* tif, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)
+bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)
 {
 	if (!win.contains(c)) { return false; }
-
-	uint32 w, h;
-	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
 
 	auto c1 = win.corner_se - win.corner_nw;
 	c -= win.corner_nw;
 	c /= c1;
 
-	r_out = h * c.lat();
-	c_out = w * c.lng();
+	r_out = height * c.lat();
+	c_out = width * c.lng();
 
-	return true;
+	return true;	
+}
+
+bool coord_to_idx(TIFF* tif, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)
+{
+
+	uint32 w, h;
+	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+
+	return coord_to_idx(w, h, win, c, r_out, c_out);
 }
 
 
@@ -82,10 +84,67 @@ void get_window_res(TIFF* tif, rohm::window win, size_t& w_out, size_t& h_out)
 	h_out = se_r - nw_r;
 }
 
+struct est_data {
+	TIFF* tiles[2][4];
+	coord start;
+	window map_win;
+	size_t map_r, map_c;
+	estimate_cell** map;
+	vec<2> idx_to_coord;
+};
+
+void estimate_cell(est_data& data, size_t r, size_t c)
+{
+	// determine starting energy
+	float start_kwh = 0;
+	float samples = 0;
+	float dist_km = 0;
+	float d_elevation_m = 0;
+	for (int ri = -1; ri <= 1; ri--)
+	for (int ci = -1; ci <= 1; ci--)
+	{
+		auto _r = r + ri, _c = c + ci;
+		// skip cells that haven't been calculated
+		// or are out of bounds
+		if (_r < 0 || _r >= data.map_r) { continue; }
+		if (_c < 0 || _c >= data.map_c) { continue; }
+		if (!data.map[_r][_c].visited) { continue; }
+	
+		auto d_coord = data.map[_r][_c].location - data.map[r][c].location;
+		auto mag = d_coord.mag();
+		if (mag > dist_km) { dist_km = mag; }
+
+		start_kwh += data.map[_r][_c].energy_kwh;
+		samples++;
+	}
+
+	if (samples > 0) start_kwh /= samples;
+
+	auto& here = data.map[r][c];
+	if (!here.visited)
+	{ // compute energy costs for this cell
+		
+	}
+
+	// populate neighbors
+	for (int ri = -1; ri <= 1; ri--)
+	for (int ci = -1; ci <= 1; ci--)
+	{
+		auto _r = r + ri, _c = c + ci;
+		if (_r < 0 || _r >= data.map_r) { continue; }
+		if (_c < 0 || _c >= data.map_c) { continue; }
+
+		if (false == data.map[_r][_c].visited)
+		{
+			estimate_cell(data, _r, _c);
+		}
+	}
+}
+
 
 void rohm::estimate(
 	size_t map_r, size_t map_c,
-	float** energy_map_out,
+	estimate_cell** map,
 	estimate_params params)
 {
 	static const char* TILE_NAMES[2][4] = {
@@ -93,7 +152,23 @@ void rohm::estimate(
 		{ "A2", "B2", "C2", "D2" },
 	};
 
-	TIFF* tiles[2][4] = {};	
+	est_data data = {
+		.map_r = map_r,
+		.map_c = map_c,
+		.map = energy_map_out,
+	};
+
+	{ // populate the estimate map with coordinates and elevations
+		double lat_per_r = (params.win.corner_se.lat() -  params.win.corner_nw.lat()) / (double)map_r;
+		double lng_per_c = (params.win.corner_se.lng() -  params.win.corner_nw.lng()) / (double)map_c;
+
+		for (size_t r = 0; r < map_r; r++)
+		for (size_t c = 0; c < map_c; c++)
+		{
+			data.map[r][c].coord = params.win.corner_nw + { lat_per_r * r, lng_per_c * c };
+			data.map[r][c].visited = false;
+		}
+	}
 
 	for (size_t i = 0; i < 4; i++)
 	{ // load tiles
@@ -103,13 +178,13 @@ void rohm::estimate(
 		get_tile_idx(params.win.corner(i), r, c);
 		snprintf(path, sizeof(path), "data/%s.tif", TILE_NAMES[r][c]);
 
-		tiles[r][c] = TIFFOpen(path, "r");
+		data.tiles[r][c] = TIFFOpen(path, "r");
 	}
 
 finish:
 	for (size_t r = 2; r--;)
 	for (size_t c = 4; c--;)
 	{
-		TIFFClose(tiles[r][c]);
+		TIFFClose(data.tiles[r][c]);
 	}
 }
