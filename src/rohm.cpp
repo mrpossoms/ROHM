@@ -123,7 +123,7 @@ void estimate_cell(est_data& data, size_t r, size_t c)
 	auto& here = data.map[r][c];
 	if (!here.visited)
 	{ // compute energy costs for this cell
-		
+				
 	}
 
 	// populate neighbors
@@ -158,18 +158,6 @@ void rohm::estimate(
 		.map = energy_map_out,
 	};
 
-	{ // populate the estimate map with coordinates and elevations
-		double lat_per_r = (params.win.corner_se.lat() -  params.win.corner_nw.lat()) / (double)map_r;
-		double lng_per_c = (params.win.corner_se.lng() -  params.win.corner_nw.lng()) / (double)map_c;
-
-		for (size_t r = 0; r < map_r; r++)
-		for (size_t c = 0; c < map_c; c++)
-		{
-			data.map[r][c].coord = params.win.corner_nw + { lat_per_r * r, lng_per_c * c };
-			data.map[r][c].visited = false;
-		}
-	}
-
 	for (size_t i = 0; i < 4; i++)
 	{ // load tiles
 		char path[128];
@@ -179,6 +167,20 @@ void rohm::estimate(
 		snprintf(path, sizeof(path), "data/%s.tif", TILE_NAMES[r][c]);
 
 		data.tiles[r][c] = TIFFOpen(path, "r");
+	}
+
+
+	{ // populate the estimate map with coordinates and elevations
+		double lat_per_r = (params.win.corner_se.lat() -  params.win.corner_nw.lat()) / (double)map_r;
+		double lng_per_c = (params.win.corner_se.lng() -  params.win.corner_nw.lng()) / (double)map_c;
+
+		for (size_t r = 0; r < map_r; r++)
+		for (size_t c = 0; c < map_c; c++)
+		{
+			data.map[r][c].coord = params.win.corner_nw + { lat_per_r * r, lng_per_c * c };
+			data.map[r][c].elevation_m = 
+			data.map[r][c].visited = false;
+		}
 	}
 
 finish:
