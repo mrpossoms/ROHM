@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <math.h>
 #include <initializer_list>
 #include <string.h>
 
@@ -10,7 +11,14 @@ namespace rohm
 template <size_t N>
 struct vec
 {
-	vec() { memset(v, 0, sizeof(double) * N ); }
+	vec() = default;
+	vec(const vec<N>& o)
+	{ 
+		for (auto i = N; i--;)
+		{
+			v[i] = o.v[i];
+		}
+	}
 
 	vec(std::initializer_list<double> init)
 	{
@@ -38,6 +46,15 @@ struct vec
 			if (o.v[i] != v[i]) { return false; } 
 		} 
 		return true;
+	}
+
+	vec<N>& operator=(const vec<N>& o)
+	{
+		for(int i = 0; i < N; i++)
+		{
+			v[i] = o.v[i]; 
+		} 
+		return *this;
 	}
 
 	vec<N> operator-(const vec<N>& o)
@@ -80,12 +97,13 @@ struct vec
 		return sqrt(m);
 	}
 
-	double v[N];
+	double v[N] = {0};
 };
 
 struct coord : public vec<2>
 {
 	coord () : vec<2>() {}
+	coord (vec<2> v) : vec<2>(v) {}
 	coord (double lat, double lng) : vec<2>({ lat, lng }) { }
 
 	inline double lat() const { return v[0]; }
@@ -97,6 +115,13 @@ struct coord : public vec<2>
 
 struct window
 {
+	window() = default;
+	window(const coord& nw, const coord& se)
+	{
+		corner_nw = nw;
+		corner_se = se;
+	}
+
 	coord corner_nw, corner_se;
 
 	coord corner(size_t ci)
@@ -148,7 +173,7 @@ struct estimate_cell
 	coord location;
 	float elevation_m;
 	float energy_kwh;
-}
+};
 
 void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
 

@@ -1,9 +1,8 @@
 #include "rohm.h"
 #include <tiffio.h>
-#include <math.h>
+#include <stdint.h>
 
-
-vec3 gcs_to_ecef_km(rohm::coord c)
+rohm::vec<3> gcs_to_ecef_km(rohm::coord c)
 {
 	const auto EARTH_EQUATORIAL_RAD_KM = 6378.1370;
 	const auto EARTH_POLAR_RAD_KM = 6356.7520;
@@ -86,11 +85,11 @@ void get_window_res(TIFF* tif, rohm::window win, size_t& w_out, size_t& h_out)
 
 struct est_data {
 	TIFF* tiles[2][4];
-	coord start;
-	window map_win;
+	rohm::coord start;
+	rohm::window map_win;
 	size_t map_r, map_c;
-	estimate_cell** map;
-	vec<2> idx_to_coord;
+	rohm::estimate_cell** map;
+	rohm::vec<2> idx_to_coord;
 };
 
 void estimate_cell(est_data& data, size_t r, size_t c)
@@ -152,12 +151,12 @@ void rohm::estimate(
 		{ "A2", "B2", "C2", "D2" },
 	};
 
-	est_data data = {
-		.map_r = map_r,
-		.map_c = map_c,
-		.map = energy_map_out,
-	};
+	est_data data;
+	data.map_r = map_r;
+	data.map_c = map_c;
+	data.map = map;
 
+	uint16 samp_per_pixel, bits_per_sample;
 	for (size_t i = 0; i < 4; i++)
 	{ // load tiles
 		char path[128];
@@ -166,7 +165,15 @@ void rohm::estimate(
 		get_tile_idx(params.win.corner(i), r, c);
 		snprintf(path, sizeof(path), "data/%s.tif", TILE_NAMES[r][c]);
 
+		if (data.tiles[r][c] != nullptr) { continue; }
+
 		data.tiles[r][c] = TIFFOpen(path, "r");
+		uint32 config;
+		TIFFGetField(data.tiles[r][c], TIFFTAG_PLANARCONFIG, &config);
+		TIFFGetField(data.tiles[r][c], TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
+		TIFFGetField(data.tiles[r][c], TIFFTAG_SAMPLESPERPIXEL, &samp_per_pixel);
+
+		printf("bits_per_sample: %d samp_per_pixel: %d\n", bits_per_sample, samp_per_pixel);
 	}
 
 
@@ -177,16 +184,38 @@ void rohm::estimate(
 		for (size_t r = 0; r < map_r; r++)
 		for (size_t c = 0; c < map_c; c++)
 		{
-			data.map[r][c].coord = params.win.corner_nw + { lat_per_r * r, lng_per_c * c };
-			data.map[r][c].elevation_m = 
+			rohm::coord offset = { lat_per_r * r, lng_per_c * c };
+			data.map[r][c].location = params.win.corner_nw + offset;
+			
+			// query for correct tiff given the coordinate
+			size_t t_r, t_c;
+			uint32 t_w, t_h;
+			get_tile_idx(data.map[r][c].location, t_r, t_c);
+			TIFFGetField(data.tiles[r][c], TIFFTAG_IMAGEWIDTH, &t_w);
+			TIFFGetField(data.tiles[r][c], TIFFTAG_IMAGELENGTH, &t_h);
+
+			auto win = get_tile_window(t_r, t_c);
+			TIFF* tif = data.tiles[t_r][t_c];
+			coord_to_idx(t_w, t_h, win, data.map[r][c].location, t_r, t_c);
+
+			tdata_t buf = _TIFFmalloc(TIFFScanlineSize(tif));
+
+			TIFFReadScanline(tif, buf, t_r + r, samp_per_pixel);
+
+			data.map[r][c].elevation_m = ((uint8_t*)buf)[t_c] * (6400.0 / 255.0);
 			data.map[r][c].visited = false;
+
+			_TIFFfree(buf);
 		}
+
+
 	}
 
 finish:
 	for (size_t r = 2; r--;)
 	for (size_t c = 4; c--;)
 	{
+		if (nullptr == data.tiles[r][c]) { continue; }
 		TIFFClose(data.tiles[r][c]);
 	}
 }
