@@ -13,9 +13,11 @@ struct est_data {
 	rohm::vec<2> idx_to_coord;
 };
 
-void estimate_cell_r(est_data& data, size_t r, size_t c)
+void estimate_cell_eval(est_data& data, size_t r, size_t c)
 {
 	auto& here = data.map[r][c];
+
+	if (here.visited) { return; }
 
 	// determine starting energy
 	float start_kwh = 0;
@@ -43,14 +45,12 @@ void estimate_cell_r(est_data& data, size_t r, size_t c)
 		samples++;
 	}
 
-	if (samples > 0)
-	{
-		start_kwh /= samples;
-		dist_km /= samples;
-		d_elevation_m /= samples;
-	}
+	if (samples == 0) { return; }
 
-	if (!here.visited)
+	start_kwh /= samples;
+	dist_km /= samples;
+	d_elevation_m /= samples;
+
 	{ // compute energy costs for this cell
 		const auto g = 9.8; // m/s^2
 
@@ -64,21 +64,6 @@ void estimate_cell_r(est_data& data, size_t r, size_t c)
 
 
 		here.visited = true;
-	}
-
-	// populate neighbors
-	for (int ri = -1; ri <= 1; ri++)
-	for (int ci = -1; ci <= 1; ci++)
-	{
-		int _r = r + ri, _c = c + ci;
-		if (_r < 0 || _r >= data.map_r) { continue; }
-		if (_c < 0 || _c >= data.map_c) { continue; }
-		if (0 == ri && 0 == ci) { continue; }
-
-		if (!data.map[_r][_c].visited)
-		{
-			estimate_cell_r(data, _r, _c);
-		}
 	}
 }
 
@@ -162,7 +147,14 @@ void rohm::estimate(
 	coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
 	data.map[r][c].visited = true;	
-	estimate_cell_r(data, r, c);
+
+	for (int itr = 15; itr--;)
+	for (size_t r = 0; r < map_r; r++)
+	for (size_t c = 0; c < map_c; c++)
+	{
+		estimate_cell_eval(data, r, c);
+	}
+
 
 finish:
 	for (size_t r = 2; r--;)
