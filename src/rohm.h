@@ -174,6 +174,7 @@ struct estimate_cell
 	coord gcs_location;
 	vec<3> ecef_location;
 	float elevation_m;
+	float d_elevation_m;
 	float energy_kwh;
 };
 

@@ -11,14 +11,14 @@ TEST
 
 	rohm::coord start = { 40.142727, -105.101341 };
 
-	auto corner_nw = start + rohm::coord{ 0.1, -0.1 };
-	auto corner_se = start + rohm::coord{ -0.1, 0.1 };
+	auto corner_nw = start + rohm::coord{ 0.2, -0.2 };
+	auto corner_se = start + rohm::coord{ -0.2, 0.2 };
 	rohm::window est_win;//(corner_nw, corner_se);
 	est_win.corner_nw = corner_nw;
 	est_win.corner_se = corner_se;
 
 	rohm::vehicle_params params = {
-		4.1, 0, 24
+		4.1, 0, 24, 1536.36
 	};
 
 	rohm::estimate(h, w, map, {
@@ -30,6 +30,16 @@ TEST
 		for (int j = 0; j < w; j++)
 		{
 			printf("%f   ", map[i][j].energy_kwh);
+		}
+		printf("\n");		
+	}
+	printf("\n");
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			printf("%f   ", map[i][j].d_elevation_m);
 		}
 		printf("\n");		
 	}

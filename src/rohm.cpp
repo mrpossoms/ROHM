@@ -1,87 +1,7 @@
 #include "rohm.h"
+#include "coord_utils.h"
 #include <tiffio.h>
 #include <stdint.h>
-
-rohm::vec<3> gcs_to_ecef_km(rohm::coord c)
-{
-	const auto EARTH_EQUATORIAL_RAD_KM = 6378.1370;
-	const auto EARTH_POLAR_RAD_KM = 6356.7520;
-
-	auto dtr = M_PI / 180.0;
-
-	const auto lat = dtr * c.lat();
-	const auto lng = dtr * c.lng();
-
-	const auto lat_cos = cos(lat);
-	const auto lat_sin = sin(lat);
-	const auto lng_cos = cos(lng);
-	const auto lng_sin = sin(lng);
-
-	return { 
-		EARTH_EQUATORIAL_RAD_KM * lng_cos * lat_cos,
-		EARTH_EQUATORIAL_RAD_KM * lng_sin * lat_cos,
-		EARTH_POLAR_RAD_KM * lat_sin
-	};
-}
-
-bool get_tile_idx(rohm::coord c, size_t& r_out, size_t& c_out)
-{
-	if (c.lat() < -90 || c.lat() > 90) { return false; }
-	if (c.lng() < -180 || c.lng() > 180) { return false; }
-
-	r_out = c.lat() > 0 ? 0 : 1;
-	c_out = (c.lng() + 180) / 90;
-
-	return true;	
-}
-
-
-rohm::window get_tile_window(size_t r, size_t c)
-{
-	static rohm::window tiles[2][4] = {
-		{ {{90, -180}, {0, -90}}, {{90, -90}, {0, 0}}, {{90, 0}, {0, -90}}, {{90, 90}, {0, 180}} },
-		{ {{0, -180}, {-90, -90}}, {{0, -90}, {-90, 0}}, {{0, 0}, {-90, -90}}, {{0, 90}, {-90, 180}}},
-	};
-
-	return tiles[r][c];
-}
-
-
-bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)
-{
-	if (!win.contains(c)) { return false; }
-
-	auto c1 = win.corner_se - win.corner_nw;
-	c -= win.corner_nw;
-	c /= c1;
-
-	r_out = height * c.lat();
-	c_out = width * c.lng();
-
-	return true;	
-}
-
-bool coord_to_idx(TIFF* tif, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)
-{
-
-	uint32 w, h;
-	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-
-	return coord_to_idx(w, h, win, c, r_out, c_out);
-}
-
-
-void get_window_res(TIFF* tif, rohm::window win, size_t& w_out, size_t& h_out)
-{
-	size_t nw_r, nw_c, se_r, se_c;
-
-	coord_to_idx(tif, win, win.corner_nw, nw_r, nw_c);
-	coord_to_idx(tif, win, win.corner_se, se_r, se_c);
-
-	w_out = se_c - nw_c;
-	h_out = se_r - nw_r;
-}
 
 struct est_data {
 	TIFF* tiles[2][4] = {};
@@ -95,11 +15,14 @@ struct est_data {
 
 void estimate_cell_r(est_data& data, size_t r, size_t c)
 {
+	auto& here = data.map[r][c];
+
 	// determine starting energy
 	float start_kwh = 0;
 	float samples = 0;
 	float dist_km = 0;
 	float d_elevation_m = 0;
+
 	for (int ri = -1; ri <= 1; ri++)
 	for (int ci = -1; ci <= 1; ci++)
 	{
@@ -110,12 +33,13 @@ void estimate_cell_r(est_data& data, size_t r, size_t c)
 		if (_c < 0 || _c >= data.map_c) { continue; }
 		if (!data.map[_r][_c].visited) { continue; }
 	
-		auto d_coord = data.map[_r][_c].ecef_location - data.map[r][c].ecef_location;
+		auto d_coord = data.map[_r][_c].ecef_location - here.ecef_location;
 		auto mag = d_coord.mag();
-		// if (mag > dist_km) { dist_km = mag; }
 
 		start_kwh += data.map[_r][_c].energy_kwh;
 		dist_km += mag;
+		d_elevation_m += here.elevation_m - data.map[_r][_c].elevation_m;
+
 		samples++;
 	}
 
@@ -123,12 +47,22 @@ void estimate_cell_r(est_data& data, size_t r, size_t c)
 	{
 		start_kwh /= samples;
 		dist_km /= samples;
+		d_elevation_m /= samples;
 	}
 
-	auto& here = data.map[r][c];
 	if (!here.visited)
 	{ // compute energy costs for this cell
+		const auto g = 9.8; // m/s^2
+
 		here.energy_kwh = start_kwh - (dist_km / data.car.avg_kwh_km);
+		here.d_elevation_m = d_elevation_m;
+
+		if (d_elevation_m > 0)
+		{
+			//here.energy_kwh -= g * data.car.mass_kg * d_elevation_m / 3.6e+6;
+		}
+
+
 		here.visited = true;
 	}
 
@@ -220,13 +154,15 @@ void rohm::estimate(
 			_TIFFfree(buf);
 		}
 
-		size_t r, c;
-		coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
-		data.map[r][c].energy_kwh = params.car.energy_kwh;
-		data.map[r][c].visited = true;
 
-		estimate_cell_r(data, r, c);
 	}
+
+	// setup start cell, begin estimation
+	size_t r, c;
+	coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
+	data.map[r][c].energy_kwh = params.car.energy_kwh;
+	data.map[r][c].visited = true;	
+	estimate_cell_r(data, r, c);
 
 finish:
 	for (size_t r = 2; r--;)
