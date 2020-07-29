@@ -84,58 +84,66 @@ void get_window_res(TIFF* tif, rohm::window win, size_t& w_out, size_t& h_out)
 }
 
 struct est_data {
-	TIFF* tiles[2][4];
+	TIFF* tiles[2][4] = {};
 	rohm::coord start;
 	rohm::window map_win;
+	rohm::vehicle_params car;
 	size_t map_r, map_c;
 	rohm::estimate_cell** map;
 	rohm::vec<2> idx_to_coord;
 };
 
-void estimate_cell(est_data& data, size_t r, size_t c)
+void estimate_cell_r(est_data& data, size_t r, size_t c)
 {
 	// determine starting energy
 	float start_kwh = 0;
 	float samples = 0;
 	float dist_km = 0;
 	float d_elevation_m = 0;
-	for (int ri = -1; ri <= 1; ri--)
-	for (int ci = -1; ci <= 1; ci--)
+	for (int ri = -1; ri <= 1; ri++)
+	for (int ci = -1; ci <= 1; ci++)
 	{
-		auto _r = r + ri, _c = c + ci;
+		int _r = r + ri, _c = c + ci;
 		// skip cells that haven't been calculated
 		// or are out of bounds
 		if (_r < 0 || _r >= data.map_r) { continue; }
 		if (_c < 0 || _c >= data.map_c) { continue; }
 		if (!data.map[_r][_c].visited) { continue; }
 	
-		auto d_coord = data.map[_r][_c].location - data.map[r][c].location;
+		auto d_coord = data.map[_r][_c].ecef_location - data.map[r][c].ecef_location;
 		auto mag = d_coord.mag();
-		if (mag > dist_km) { dist_km = mag; }
+		// if (mag > dist_km) { dist_km = mag; }
 
 		start_kwh += data.map[_r][_c].energy_kwh;
+		dist_km += mag;
 		samples++;
 	}
 
-	if (samples > 0) start_kwh /= samples;
+	if (samples > 0)
+	{
+		start_kwh /= samples;
+		dist_km /= samples;
+	}
 
 	auto& here = data.map[r][c];
 	if (!here.visited)
 	{ // compute energy costs for this cell
-				
+		here.energy_kwh = start_kwh - (dist_km / data.car.avg_kwh_km);
+		here.visited = true;
 	}
 
 	// populate neighbors
-	for (int ri = -1; ri <= 1; ri--)
-	for (int ci = -1; ci <= 1; ci--)
+	for (int ri = -1; ri <= 1; ri++)
+	for (int ci = -1; ci <= 1; ci++)
 	{
-		auto _r = r + ri, _c = c + ci;
+		int _r = r + ri, _c = c + ci;
 		if (_r < 0 || _r >= data.map_r) { continue; }
 		if (_c < 0 || _c >= data.map_c) { continue; }
+		if (0 == ri && 0 == ci) { continue; }
 
-		if (false == data.map[_r][_c].visited)
+		if (!data.map[_r][_c].visited)
 		{
-			estimate_cell(data, _r, _c);
+			estimate_cell_r(data, _r, _c);
 		}
 	}
 }
@@ -155,6 +163,7 @@ void rohm::estimate(
 	data.map_r = map_r;
 	data.map_c = map_c;
 	data.map = map;
+	data.car = params.car;
 
 	uint16 samp_per_pixel, bits_per_sample;
 	for (size_t i = 0; i < 4; i++)
@@ -178,25 +187,28 @@ void rohm::estimate(
 
 
 	{ // populate the estimate map with coordinates and elevations
-		double lat_per_r = (params.win.corner_se.lat() -  params.win.corner_nw.lat()) / (double)map_r;
-		double lng_per_c = (params.win.corner_se.lng() -  params.win.corner_nw.lng()) / (double)map_c;
-
 		for (size_t r = 0; r < map_r; r++)
 		for (size_t c = 0; c < map_c; c++)
 		{
-			rohm::coord offset = { lat_per_r * r, lng_per_c * c };
-			data.map[r][c].location = params.win.corner_nw + offset;
-			
+			double r_w = r / (double)map_r, c_w = c / (double)map_c;
+			data.map[r][c].gcs_location = {
+				params.win.corner_nw.lat() * (1.0 - r_w) + params.win.corner_se.lat() * r_w,
+				params.win.corner_nw.lng() * (1.0 - c_w) + params.win.corner_se.lng() * c_w,
+			};
+
+			// convert GCS to ECEF 3D vector
+			data.map[r][c].ecef_location = gcs_to_ecef_km(data.map[r][c].gcs_location);
+
 			// query for correct tiff given the coordinate
 			size_t t_r, t_c;
 			uint32 t_w, t_h;
-			get_tile_idx(data.map[r][c].location, t_r, t_c);
-			TIFFGetField(data.tiles[r][c], TIFFTAG_IMAGEWIDTH, &t_w);
-			TIFFGetField(data.tiles[r][c], TIFFTAG_IMAGELENGTH, &t_h);
+			get_tile_idx(data.map[r][c].gcs_location, t_r, t_c);
+			TIFFGetField(data.tiles[t_r][t_c], TIFFTAG_IMAGEWIDTH, &t_w);
+			TIFFGetField(data.tiles[t_r][t_c], TIFFTAG_IMAGELENGTH, &t_h);
 
 			auto win = get_tile_window(t_r, t_c);
 			TIFF* tif = data.tiles[t_r][t_c];
-			coord_to_idx(t_w, t_h, win, data.map[r][c].location, t_r, t_c);
+			coord_to_idx(t_w, t_h, win, data.map[r][c].gcs_location, t_r, t_c);
 
 			tdata_t buf = _TIFFmalloc(TIFFScanlineSize(tif));
 
@@ -208,7 +220,12 @@ void rohm::estimate(
 			_TIFFfree(buf);
 		}
 
+		size_t r, c;
+		coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
+		data.map[r][c].energy_kwh = params.car.energy_kwh;
+		data.map[r][c].visited = true;
 
+		estimate_cell_r(data, r, c);
 	}
 
 finish:

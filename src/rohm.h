@@ -158,6 +158,7 @@ struct vehicle_params
 	float avg_kwh_km;
 	float regen_efficiency;
 	float energy_kwh;
+	float mass_kg;
 };
 
 struct estimate_params
@@ -170,7 +171,8 @@ struct estimate_params
 struct estimate_cell
 {
 	bool visited;
-	coord location;
+	coord gcs_location;
+	vec<3> ecef_location;
 	float elevation_m;
 	float energy_kwh;
 };

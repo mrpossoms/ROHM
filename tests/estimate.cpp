@@ -4,15 +4,15 @@
 
 TEST
 {
-	const size_t w = 3, h = 3;
+	const size_t w = 9, h = 9;
 	rohm::estimate_cell** map = new rohm::estimate_cell*[h];
 	for (auto r = h; r--;)
 	map[r] = new rohm::estimate_cell[w];
 
 	rohm::coord start = { 40.142727, -105.101341 };
 
-	auto corner_nw = start + rohm::coord{ 0.0001, -0.0001 };
-	auto corner_se = start + rohm::coord{ -0.0001, 0.0001 };
+	auto corner_nw = start + rohm::coord{ 0.1, -0.1 };
+	auto corner_se = start + rohm::coord{ -0.1, 0.1 };
 	rohm::window est_win;//(corner_nw, corner_se);
 	est_win.corner_nw = corner_nw;
 	est_win.corner_se = corner_se;
@@ -21,9 +21,43 @@ TEST
 		4.1, 0, 24
 	};
 
-	rohm::estimate(1, 1, map, {
+	rohm::estimate(h, w, map, {
 		est_win, start, params
 	});
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			printf("%f   ", map[i][j].energy_kwh);
+		}
+		printf("\n");		
+	}
+	printf("\n");
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			auto d_coord = map[i][j].ecef_location - map[h/2][w/2].ecef_location;
+			auto mag = d_coord.mag();
+			printf("%f   ", mag);
+		}
+		printf("\n");		
+	}
+	printf("\n");
+
+
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			printf("%f,%f   ", map[i][j].gcs_location.lat(), map[i][j].gcs_location.lng());
+		}
+		printf("\n");		
+	}
+
 
 	return 0;
 }
