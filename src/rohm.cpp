@@ -13,7 +13,7 @@ struct est_data {
 	rohm::vec<2> idx_to_coord;
 };
 
-void estimate_cell_eval(est_data& data, size_t r, size_t c)
+void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 {
 	auto& here = data.map[r][c];
 
@@ -34,6 +34,7 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c)
 		if (_r < 0 || _r >= data.map_r) { continue; }
 		if (_c < 0 || _c >= data.map_c) { continue; }
 		if (!data.map[_r][_c].visited) { continue; }
+		if (data.map[_r][_c].visited >= iteration) { continue; }
 	
 		auto d_coord = data.map[_r][_c].ecef_location - here.ecef_location;
 		auto mag = d_coord.mag();
@@ -59,11 +60,11 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c)
 
 		if (d_elevation_m > 0)
 		{
-			//here.energy_kwh -= g * data.car.mass_kg * d_elevation_m / 3.6e+6;
+			here.energy_kwh -= g * data.car.mass_kg * d_elevation_m / 3.6e+6;
 		}
 
 
-		here.visited = true;
+		here.visited = iteration;
 	}
 }
 
@@ -134,7 +135,8 @@ void rohm::estimate(
 			TIFFReadScanline(tif, buf, t_r + r, samp_per_pixel);
 
 			data.map[r][c].elevation_m = ((uint8_t*)buf)[t_c] * (6400.0 / 255.0);
-			data.map[r][c].visited = false;
+			data.map[r][c].visited = 0;
+			data.map[r][c].energy_kwh = 0;
 
 			_TIFFfree(buf);
 		}
@@ -146,13 +148,13 @@ void rohm::estimate(
 	size_t r, c;
 	coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
-	data.map[r][c].visited = true;	
+	data.map[r][c].visited = 1;	
 
-	for (int itr = 15; itr--;)
+	for (int itr = 1; itr < 10; itr++)
 	for (size_t r = 0; r < map_r; r++)
 	for (size_t c = 0; c < map_c; c++)
 	{
-		estimate_cell_eval(data, r, c);
+		estimate_cell_eval(data, r, c, itr);
 	}
 
 

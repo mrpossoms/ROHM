@@ -170,7 +170,7 @@ struct estimate_params
 
 struct estimate_cell
 {
-	bool visited;
+	int visited;
 	coord gcs_location;
 	vec<3> ecef_location;
 	float elevation_m;
