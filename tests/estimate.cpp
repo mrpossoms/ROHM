@@ -5,12 +5,14 @@
 TEST
 {
 	const size_t w = 221, h = 221;
+	// const size_t w = 9, h = 9;
 	rohm::estimate_cell** map = new rohm::estimate_cell*[h];
 	for (auto r = h; r--;)
 	map[r] = new rohm::estimate_cell[w];
 
-	//rohm::coord start = { 40.142727, -105.101341 };
-	rohm::coord start = { 40.358939, -105.530703 };
+	//rohm::coord start = { 40.142727, -105.101341 }; // longmong CO
+	rohm::coord start = { 40.358939, -105.530703 }; // estes park CO
+	// rohm::coord start = { 27.093487, -82.429928 }; // venice FL
 	auto corner_nw = start + rohm::coord{ 0.8, -0.8 };
 	auto corner_se = start + rohm::coord{ -0.8, 0.8 };
 	rohm::window est_win;//(corner_nw, corner_se);
@@ -18,7 +20,7 @@ TEST
 	est_win.corner_se = corner_se;
 
 	rohm::vehicle_params car = {
-		4.1, 0, 24, 1536.36
+		4.1, 0.3, 24, 1536.36
 	};
 
 	rohm::estimate(h, w, map, {

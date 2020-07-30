@@ -59,11 +59,9 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 		here.energy_kwh = start_kwh - (dist_km / data.car.avg_kwh_km);
 		here.d_elevation_m = d_elevation_m;
 
-		if (d_elevation_m > 0)
-		{
-			here.energy_kwh -= g * data.car.mass_kg * d_elevation_m / 3.6e+6;
-		}
+		auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
 
+		here.energy_kwh -= g * regen_efficiency * data.car.mass_kg * d_elevation_m / 3.6e+6;
 
 		here.visited = iteration;
 	}
@@ -104,6 +102,7 @@ void rohm::estimate(
 		TIFFGetField(data.tiles[r][c], TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
 		TIFFGetField(data.tiles[r][c], TIFFTAG_SAMPLESPERPIXEL, &samp_per_pixel);
 
+		printf("loaded tile: '%s'\n", path);
 		printf("bits_per_sample: %d samp_per_pixel: %d\n", bits_per_sample, samp_per_pixel);
 	}
 
@@ -142,8 +141,6 @@ void rohm::estimate(
 
 			_TIFFfree(buf);
 		}
-
-
 	}
 
 	// setup start cell, begin estimation
@@ -152,7 +149,7 @@ void rohm::estimate(
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
 	data.map[r][c].visited = 1;	
 
-	for (int itr = 1; itr < map_r * 2; itr++)
+	for (int itr = 1; !data.map[0][0].visited; itr++)
 	for (size_t r = 0; r < map_r; r++)
 	for (size_t c = 0; c < map_c; c++)
 	{
@@ -210,12 +207,11 @@ void rohm::write_tiff(
 			auto charge_percentage = std::max(map[ri][ci].energy_kwh / car.energy_kwh, 0.0f);
 			// auto charge_percentage = map[ri][ci].energy_kwh / car.energy_kwh;
 
-			row_buf[ci].b = 255.0 * (map[ri][ci].elevation_m / 6400.0);
-			row_buf[ci].r = row_buf[ci].b;
-			row_buf[ci].g = row_buf[ci].b;	
+			auto elevation = map[ri][ci].elevation_m / 6400.0;
 
-			row_buf[ci].r *= (1.0 - charge_percentage);
-			row_buf[ci].g *= (charge_percentage);
+			row_buf[ci].r = 255 * (1.0 - charge_percentage);
+			row_buf[ci].g = 255 * (charge_percentage);
+			row_buf[ci].b = 255.0 * elevation;
 		}
 
     	if (TIFFWriteScanline(tif, (unsigned char*)row_buf, ri, 0) < 0) { break; }
