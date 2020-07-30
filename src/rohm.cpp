@@ -2,6 +2,7 @@
 #include "coord_utils.h"
 #include <tiffio.h>
 #include <stdint.h>
+#include <algorithm>
 
 struct est_data {
 	TIFF* tiles[2][4] = {};
@@ -74,6 +75,7 @@ void rohm::estimate(
 	estimate_cell** map,
 	estimate_params params)
 {
+
 	static const char* TILE_NAMES[2][4] = {
 		{ "A1", "B1", "C1", "D1" },
 		{ "A2", "B2", "C2", "D2" },
@@ -150,7 +152,7 @@ void rohm::estimate(
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
 	data.map[r][c].visited = 1;	
 
-	for (int itr = 1; itr < 10; itr++)
+	for (int itr = 1; itr < map_r * 2; itr++)
 	for (size_t r = 0; r < map_r; r++)
 	for (size_t c = 0; c < map_c; c++)
 	{
@@ -165,4 +167,60 @@ finish:
 		if (nullptr == data.tiles[r][c]) { continue; }
 		TIFFClose(data.tiles[r][c]);
 	}
+}
+
+struct rgb_t
+{
+	uint8_t r, g, b;
+};
+
+
+void rohm::write_tiff(
+	const std::string& path,
+	const size_t r, const size_t c,
+	rohm::estimate_cell** map,
+	rohm::vehicle_params car)
+{
+
+
+	TIFF *tif= TIFFOpen(path.c_str(), "w");
+
+	int samp_per_pixel = 3;
+
+	char *pixel_buf = new char[c * r * samp_per_pixel];
+
+	int w = c, h = r;
+	TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, w);  // set the width of the image
+	TIFFSetField(tif, TIFFTAG_IMAGELENGTH, h);    // set the height of the image
+	TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samp_per_pixel);   // set number of channels per pixel
+	TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);    // set the size of the channels
+	TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
+	//   Some other essential fields to set that you do not have to understand for now.
+	TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+	TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+	TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, w * samp_per_pixel));
+
+	tsize_t line_bytes = samp_per_pixel * w;
+	rgb_t* row_buf = (rgb_t*)_TIFFmalloc(line_bytes);
+
+	for(size_t ri = 0; ri < r; ri++)
+	{
+		for (size_t ci = 0; ci < c; ci++)
+		{
+			auto charge_percentage = std::max(map[ri][ci].energy_kwh / car.energy_kwh, 0.0f);
+			// auto charge_percentage = map[ri][ci].energy_kwh / car.energy_kwh;
+
+			row_buf[ci].b = 255.0 * (map[ri][ci].elevation_m / 6400.0);
+			row_buf[ci].r = row_buf[ci].b;
+			row_buf[ci].g = row_buf[ci].b;	
+
+			row_buf[ci].r *= (1.0 - charge_percentage);
+			row_buf[ci].g *= (charge_percentage);
+		}
+
+    	if (TIFFWriteScanline(tif, (unsigned char*)row_buf, ri, 0) < 0) { break; }
+	}
+	_TIFFfree((unsigned char*)row_buf);
+
+	TIFFClose(tif);
 }

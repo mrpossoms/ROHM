@@ -4,6 +4,7 @@
 #include <math.h>
 #include <initializer_list>
 #include <string.h>
+#include <string>
 
 namespace rohm
 {
@@ -179,5 +180,7 @@ struct estimate_cell
 };
 
 void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
+
+void write_tiff(const std::string& path, const size_t r, const size_t c, estimate_cell** map, vehicle_params car);
 
 }
