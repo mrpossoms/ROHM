@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 #include <initializer_list>
 #include <string.h>
 #include <string>
@@ -119,24 +120,24 @@ struct window
 	window() = default;
 	window(const coord& nw, const coord& se)
 	{
-		corner_nw = nw;
-		corner_se = se;
+		this->nw = nw;
+		this->se = se;
 	}
 
-	coord corner_nw, corner_se;
+	coord nw, se;
 
 	coord corner(size_t ci)
 	{
 		switch(ci)
 		{
 			case 0:
-				return corner_nw;
+				return nw;
 			case 1:
-				return { corner_nw.lat(), corner_se.lng() };
+				return { nw.lat(), se.lng() };
 			case 2:
-				return corner_se;
+				return se;
 			case 3:
-				return { corner_se.lat(), corner_nw.lng() };
+				return { se.lat(), nw.lng() };
 			default:
 				return {};
 		}
@@ -144,13 +145,18 @@ struct window
 
 	bool contains(const coord& c)
 	{
-		return corner_nw.lat() >= c.lat() && c.lat() >= corner_se.lat() &&
-		       corner_nw.lng() <= c.lng() && c.lng() <= corner_se.lng();
+		return nw.lat() >= c.lat() && c.lat() >= se.lat() &&
+		       nw.lng() <= c.lng() && c.lng() <= se.lng();
 	}
 
 	bool operator==(const window& o)
 	{
-		return corner_nw == o.corner_nw && corner_se == o.corner_se;
+		return nw == o.nw && se == o.se;
+	}
+
+	bool is_unset()
+	{
+		return nw == coord{ 0, 0 } && se == coord{ 0, 0 };
 	}
 };
 
@@ -162,11 +168,18 @@ struct vehicle_params
 	float mass_kg;
 };
 
+struct trip
+{
+	std::vector<coord> waypoints;
+	std::vector<float> avg_speed_km_h;
+};
+
 struct estimate_params
 {
 	window win;
 	coord origin;
 	vehicle_params car;
+	trip path;
 };
 
 struct estimate_cell

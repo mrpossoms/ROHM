@@ -14,6 +14,20 @@ struct est_data {
 	rohm::vec<2> idx_to_coord;
 };
 
+
+void cell_energy_expenditure(rohm::estimate_cell& here, const est_data& data, float d_elevation_m, float dist_km)
+{ // compute energy costs for this cell
+	const auto g = 9.8; // m/s^2
+
+	here.d_elevation_m = d_elevation_m;
+	here.energy_kwh -= dist_km / data.car.avg_kwh_km;
+
+	auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
+
+	here.energy_kwh -= g * regen_efficiency * data.car.mass_kg * d_elevation_m / 3.6e+6;
+}
+
+
 void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 {
 	auto& here = data.map[r][c];
@@ -49,22 +63,40 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 
 	if (samples == 0) { return; }
 
-	start_kwh /= samples;
+	here.energy_kwh = start_kwh / samples;
 	dist_km /= samples;
 	d_elevation_m /= samples;
 
-	{ // compute energy costs for this cell
-		const auto g = 9.8; // m/s^2
+	cell_energy_expenditure(here, data, d_elevation_m, dist_km);
 
-		here.energy_kwh = start_kwh - (dist_km / data.car.avg_kwh_km);
-		here.d_elevation_m = d_elevation_m;
+	here.visited = iteration;
+}
 
-		auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
 
-		here.energy_kwh -= g * regen_efficiency * data.car.mass_kg * d_elevation_m / 3.6e+6;
+void estimate_cell_path(est_data& data, const rohm::trip trip)
+{
 
-		here.visited = iteration;
+}
+
+
+rohm::window window_from_path(const std::vector<rohm::coord> path)
+{
+	if (path.size() == 0) return {};
+
+	rohm::window win = {
+		path[0], path[0]
+	};
+
+	// find the bounding box for the path given
+	for (const auto& coord : path)
+	{
+		if (coord.lat() > win.nw.lat()) { win.nw.lat(coord.lat()); }
+		if (coord.lng() < win.nw.lng()) { win.nw.lng(coord.lng()); }
+		if (coord.lat() < win.se.lat()) { win.se.lat(coord.lat()); }
+		if (coord.lng() > win.se.lng()) { win.se.lng(coord.lng()); }
 	}
+
+	return win;
 }
 
 
@@ -113,8 +145,8 @@ void rohm::estimate(
 		{
 			double r_w = r / (double)map_r, c_w = c / (double)map_c;
 			data.map[r][c].gcs_location = {
-				params.win.corner_nw.lat() * (1.0 - r_w) + params.win.corner_se.lat() * r_w,
-				params.win.corner_nw.lng() * (1.0 - c_w) + params.win.corner_se.lng() * c_w,
+				params.win.nw.lat() * (1.0 - r_w) + params.win.se.lat() * r_w,
+				params.win.nw.lng() * (1.0 - c_w) + params.win.se.lng() * c_w,
 			};
 
 			// convert GCS to ECEF 3D vector
@@ -192,7 +224,6 @@ void rohm::write_tiff(
 	TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samp_per_pixel);   // set number of channels per pixel
 	TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);    // set the size of the channels
 	TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
-	//   Some other essential fields to set that you do not have to understand for now.
 	TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
 	TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 	TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, w * samp_per_pixel));
@@ -204,13 +235,13 @@ void rohm::write_tiff(
 	{
 		for (size_t ci = 0; ci < c; ci++)
 		{
-			auto charge_percentage = std::max(map[ri][ci].energy_kwh / car.energy_kwh, 0.0f);
+			auto charge_percentage = std::min(1.0f, std::max(map[ri][ci].energy_kwh / car.energy_kwh, 0.0f));
 			// auto charge_percentage = map[ri][ci].energy_kwh / car.energy_kwh;
 
 			auto elevation = map[ri][ci].elevation_m / 6400.0;
 
-			row_buf[ci].r = 255 * (1.0 - charge_percentage);
-			row_buf[ci].g = 255 * (charge_percentage);
+			row_buf[ci].r = 255 * (1.0 - charge_percentage) * elevation;
+			row_buf[ci].g = 255 * (charge_percentage) * elevation;
 			row_buf[ci].b = 255.0 * elevation;
 		}
 

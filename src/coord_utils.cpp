@@ -50,8 +50,8 @@ bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, 
 {
 	if (!win.contains(c)) { return false; }
 
-	auto c1 = win.corner_se - win.corner_nw;
-	c -= win.corner_nw;
+	auto c1 = win.se - win.nw;
+	c -= win.nw;
 	c /= c1;
 
 	r_out = height * c.lat();
@@ -75,8 +75,8 @@ void get_window_res(TIFF* tif, rohm::window win, size_t& w_out, size_t& h_out)
 {
 	size_t nw_r, nw_c, se_r, se_c;
 
-	coord_to_idx(tif, win, win.corner_nw, nw_r, nw_c);
-	coord_to_idx(tif, win, win.corner_se, se_r, se_c);
+	coord_to_idx(tif, win, win.nw, nw_r, nw_c);
+	coord_to_idx(tif, win, win.se, se_r, se_c);
 
 	w_out = se_c - nw_c;
 	h_out = se_r - nw_r;
