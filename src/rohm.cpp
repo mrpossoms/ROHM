@@ -15,16 +15,61 @@ struct est_data {
 };
 
 
-void cell_energy_expenditure(rohm::estimate_cell& here, const est_data& data, float d_elevation_m, float dist_km)
+void cell_energy_expenditure(rohm::estimate_cell& here,
+	const est_data& data,
+	float speed_km_h,
+	float d_elevation_m,
+	float dist_km,
+	float temp_c)
 { // compute energy costs for this cell
-	const auto g = 9.8; // m/s^2
+	const auto g = 9.80665; // m/s^2
 
 	here.d_elevation_m = d_elevation_m;
-	here.energy_kwh -= dist_km / data.car.avg_kwh_km;
+
+	if (speed_km_h)
+	{ // more specific calculation using drag, and rolling-resistance
+		auto temp_k = temp_c + 273.15; // convert celsius to Kelvin
+		float P; // air pressure (Pa)
+
+		{ // compute air pressure
+			// https://en.wikipedia.org/wiki/Barometric_formula
+			const auto p_0 = 101325; // pressure (Pa) at sea level
+			const auto L = 0.00976; // temperature lapse rate (K/m)
+			const auto c_p = 1004.68506; // constant-pressure specific heat (J/(kg·K))
+			const auto T_0 = 288.16; // sea level standard tempurature (K)
+			const auto M = 0.02896968; // Molar mass of dry air (kg/mol)
+			const auto R_0 = 8.314462618; // Universal gas constant (J/(mol·K))
+
+			auto exp = (c_p * M) / R_0;
+			P = p_0 * pow(1.0 - ((g * here.elevation_m) / (c_p * T_0)), exp);
+		}
+
+		// p the mass density of the air can be computed as
+		auto R_spec = 287.058; // J/(kg·K) for dry air
+		auto p = P / R_spec * temp_k;
+
+		// Force from drag
+		// F = 0.5 * p * v^2 * c_d * A
+		// where p is the mass density of the air (see below)
+		// where v is the flow speed of the object relative to the air (m/s)
+		// c_d is the coefficent of drag
+		// A is the crossectional area of the object (m^2)
+		// 
+		// p the mass density of the air can be computed as
+		// p = P / R * T
+		// where P is the absolute pressure in Pa
+		// R is the specific gas constant for dry air
+		// T is the absolute tempurature (K)
+	}
+	else
+	{ // simplified using 'average efficiency'
+		here.energy_kwh -= dist_km / data.car.avg_kwh_km;		
+	}
 
 	auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
 
-	here.energy_kwh -= g * regen_efficiency * data.car.mass_kg * d_elevation_m / 3.6e+6;
+	auto spent_energy_ws = g * regen_efficiency * data.car.mass_kg * d_elevation_m;
+	here.energy_kwh -= spent_energy_ws / 3.6e+6; // convert to kwh
 }
 
 
@@ -75,7 +120,13 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 
 void estimate_cell_path(est_data& data, const rohm::trip trip)
 {
+	auto has_speeds = trip.waypoints.size() == trip.avg_speed_km_h.size();
 
+	for (auto i = 0; i < trip.waypoints.size(); i++)
+	{
+		auto speed = has_speeds ? trip.avg_speed_km_h[i];
+
+	}
 }
 
 
