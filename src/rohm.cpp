@@ -45,6 +45,10 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 		}
 
 		// p the mass density of the air can be computed as
+		// p = P / R * T
+		// where P is the absolute pressure in Pa
+		// R is the specific gas constant for dry air
+		// T is the absolute tempurature (K)
 		auto R_spec = 287.058; // J/(kg·K) for dry air
 		auto p = P / R_spec * temp_k;
 
@@ -54,12 +58,9 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 		// where v is the flow speed of the object relative to the air (m/s)
 		// c_d is the coefficent of drag
 		// A is the crossectional area of the object (m^2)
-		// 
-		// p the mass density of the air can be computed as
-		// p = P / R * T
-		// where P is the absolute pressure in Pa
-		// R is the specific gas constant for dry air
-		// T is the absolute tempurature (K)
+		auto Fd = 0.5 * p * pow(speed_km_h, 2) * data.car.c_drag * data.car.area_m2;
+
+
 	}
 	else
 	{ // simplified using 'average efficiency'

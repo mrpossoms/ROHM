@@ -166,6 +166,7 @@ struct vehicle_params
 	float regen_efficiency;
 	float c_drag;
 	float c_rolling_resistance;
+	float area_m2;
 	float energy_kwh;
 	float mass_kg;
 };
