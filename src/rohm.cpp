@@ -23,6 +23,10 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 	float temp_c)
 { // compute energy costs for this cell
 	const auto g = 9.80665; // m/s^2
+	const auto kmh_to_ms = 1000.0 * 3600.0;
+	const auto travel_time_s = (dist_km / speed_km_h) * 3600.0;
+	const auto speed_ms = speed_km_h * kmh_to_ms;
+	const auto ws_to_kwh = 1 / 3.6e+6;
 
 	here.d_elevation_m = d_elevation_m;
 
@@ -58,8 +62,9 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 		// where v is the flow speed of the object relative to the air (m/s)
 		// c_d is the coefficent of drag
 		// A is the crossectional area of the object (m^2)
-		auto Fd = 0.5 * p * pow(speed_km_h, 2) * data.car.c_drag * data.car.area_m2;
-
+		auto F_d = 0.5 * p * -pow(speed_km_h, 2) * data.car.c_drag * data.car.area_m2;
+		auto W_d = Fd * speed_ms;
+		auto kwh_d = (Wd * travel_time_s) * ws_to_kwh;
 
 	}
 	else
@@ -70,7 +75,7 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 	auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
 
 	auto spent_energy_ws = g * regen_efficiency * data.car.mass_kg * d_elevation_m;
-	here.energy_kwh -= spent_energy_ws / 3.6e+6; // convert to kwh
+	here.energy_kwh -= spent_energy_ws * ws_to_kwh; // convert to kwh
 }
 
 
