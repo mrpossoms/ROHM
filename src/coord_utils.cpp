@@ -16,12 +16,13 @@ rohm::vec<3> gcs_to_ecef_km(rohm::coord c)
 	const auto lng_cos = cos(lng);
 	const auto lng_sin = sin(lng);
 
-	return { 
+	return {
 		EARTH_EQUATORIAL_RAD_KM * lng_cos * lat_cos,
 		EARTH_EQUATORIAL_RAD_KM * lng_sin * lat_cos,
 		EARTH_POLAR_RAD_KM * lat_sin
 	};
 }
+
 
 bool get_tile_idx(rohm::coord c, size_t& r_out, size_t& c_out)
 {
@@ -31,7 +32,7 @@ bool get_tile_idx(rohm::coord c, size_t& r_out, size_t& c_out)
 	r_out = c.lat() > 0 ? 0 : 1;
 	c_out = (c.lng() + 180) / 90;
 
-	return true;	
+	return true;
 }
 
 
@@ -57,7 +58,7 @@ bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, 
 	r_out = height * c.lat();
 	c_out = width * c.lng();
 
-	return true;	
+	return true;
 }
 
 bool coord_to_idx(TIFF* tif, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out)

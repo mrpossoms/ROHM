@@ -12,6 +12,8 @@ struct topo
 
     float elevation_m(const rohm::coord& gcs_coord);
 
+    const TIFF* tif_at_coord(const rohm::coord& gcs_coord);
+
 private:
     uint16 samp_per_pixel;
     uint16 bits_per_sample;

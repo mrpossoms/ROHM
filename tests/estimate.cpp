@@ -27,11 +27,13 @@ TEST
 		6.25, 0.3, 75, 1730
 	};
 
+	auto car = tesla_model3_lr;
+
 	rohm::estimate(h, w, map, {
-		est_win, start, tesla_model3_lr
+		est_win, start, car
 	});
 
-	rohm::write_tiff("out.tif", h, w, map, tesla_model3_lr);
+	rohm::write_tiff("out.tif", h, w, map, car);
 
 	// for (int i = 0; i < h; i++)
 	// {
@@ -39,7 +41,7 @@ TEST
 	// 	{
 	// 		printf("%f   ", map[i][j].energy_kwh);
 	// 	}
-	// 	printf("\n");		
+	// 	printf("\n");
 	// }
 	// printf("\n");
 
@@ -49,7 +51,7 @@ TEST
 	// 	{
 	// 		printf("%f   ", map[i][j].d_elevation_m);
 	// 	}
-	// 	printf("\n");		
+	// 	printf("\n");
 	// }
 	// printf("\n");
 
@@ -61,7 +63,7 @@ TEST
 	// 		auto mag = d_coord.mag();
 	// 		printf("%f   ", mag);
 	// 	}
-	// 	printf("\n");		
+	// 	printf("\n");
 	// }
 	// printf("\n");
 
@@ -73,7 +75,7 @@ TEST
 	// 	{
 	// 		printf("%f,%f   ", map[i][j].gcs_location.lat(), map[i][j].gcs_location.lng());
 	// 	}
-	// 	printf("\n");		
+	// 	printf("\n");
 	// }
 
 

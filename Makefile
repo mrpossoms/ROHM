@@ -3,7 +3,7 @@ OBJS=$(patsubst src/%.cpp,src/%.cpp.o,$(wildcard src/*.cpp))
 INC+=
 LIB+=
 LINK+=-lm
-CPP_FLAGS+=
+CPP_FLAGS+=-std=c++11 -g
 
 src/%.cpp.o: src/%.cpp lib/$(TARG)
 	$(CXX) $(CPP_FLAGS) $(INC) $(LIB) -c $< -o $@
@@ -12,7 +12,7 @@ lib/$(TARG):
 	mkdir -p $@
 
 lib/$(TARG)/librohm.a: $(OBJS)
-	ar -crs $@ $^	
+	ar -crs $@ $^
 
 .PHONY: librohm clean
 librohm: lib/$(TARG)/librohm.a
@@ -21,4 +21,4 @@ librohm: lib/$(TARG)/librohm.a
 clean:
 	rm src/*.o
 	rm -rf lib
-	
+

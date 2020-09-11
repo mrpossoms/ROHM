@@ -15,7 +15,7 @@ struct vec
 {
 	vec() = default;
 	vec(const vec<N>& o)
-	{ 
+	{
 		for (auto i = N; i--;)
 		{
 			v[i] = o.v[i];
@@ -45,8 +45,8 @@ struct vec
 	{
 		for(int i = 0; i < N; i++)
 		{
-			if (o.v[i] != v[i]) { return false; } 
-		} 
+			if (o.v[i] != v[i]) { return false; }
+		}
 		return true;
 	}
 
@@ -54,8 +54,8 @@ struct vec
 	{
 		for(int i = 0; i < N; i++)
 		{
-			v[i] = o.v[i]; 
-		} 
+			v[i] = o.v[i];
+		}
 		return *this;
 	}
 
@@ -160,21 +160,31 @@ struct window
 	}
 };
 
+struct waypoint_ctx
+{
+	rohm::vec<2> wind_ms;
+	float temperature_c;
+};
+
 struct vehicle_params
 {
 	float avg_kwh_km;
 	float regen_efficiency;
+	float energy_kwh;
+	float mass_kg;
 	float c_drag;
 	float c_rolling_resistance;
 	float area_m2;
-	float energy_kwh;
-	float mass_kg;
 };
+
 
 struct trip
 {
 	std::vector<coord> waypoints;
 	std::vector<float> avg_speed_km_h;
+	std::vector<waypoint_ctx> ctx;
+
+	bool is_empty() { return 0 == waypoints.size(); }
 };
 
 struct estimate_params
@@ -192,6 +202,8 @@ struct estimate_cell
 	vec<3> ecef_location;
 	float elevation_m;
 	float d_elevation_m;
+	float temperature_c;
+	vec<2> wind_ms;
 	float energy_kwh;
 };
 

@@ -1,26 +1,37 @@
 #include "rohm.h"
 #include "coord_utils.h"
+#include "topo.h"
 #include <tiffio.h>
 #include <stdint.h>
 #include <algorithm>
+
 
 struct est_data {
 	TIFF* tiles[2][4] = {};
 	rohm::coord start;
 	rohm::window map_win;
 	rohm::vehicle_params car;
+	float temperature_c;
+	float avg_speed_km_h;
 	size_t map_r, map_c;
 	rohm::estimate_cell** map;
 	rohm::vec<2> idx_to_coord;
 };
 
 
+inline rohm::estimate_cell* cell_at_coord(const est_data& data, rohm::coord coord)
+{
+	size_t r, c;
+	coord_to_idx(data.map_c, data.map_r, data.map_win, coord, r, c);
+	return &data.map[r][c];
+}
+
+
 void cell_energy_expenditure(rohm::estimate_cell& here,
 	const est_data& data,
-	float speed_km_h,
 	float d_elevation_m,
 	float dist_km,
-	float temp_c)
+	float speed_km_h)
 { // compute energy costs for this cell
 	const auto g = 9.80665; // m/s^2
 	const auto kmh_to_ms = 1000.0 * 3600.0;
@@ -30,10 +41,12 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 
 	here.d_elevation_m = d_elevation_m;
 
+	float P = 101325; // air pressure (Pa) at sea level
+
+
 	if (speed_km_h)
 	{ // more specific calculation using drag, and rolling-resistance
-		auto temp_k = temp_c + 273.15; // convert celsius to Kelvin
-		float P; // air pressure (Pa)
+		auto temp_k = here.temperature_c + 273.15; // convert celsius to Kelvin
 
 		{ // compute air pressure
 			// https://en.wikipedia.org/wiki/Barometric_formula
@@ -63,13 +76,13 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 		// c_d is the coefficent of drag
 		// A is the crossectional area of the object (m^2)
 		auto F_d = 0.5 * p * -pow(speed_km_h, 2) * data.car.c_drag * data.car.area_m2;
-		auto W_d = Fd * speed_ms;
-		auto kwh_d = (Wd * travel_time_s) * ws_to_kwh;
+		auto ws_d = F_d * speed_ms;
+		auto kwh_d = (ws_d * travel_time_s) * ws_to_kwh;
 
 	}
 	else
 	{ // simplified using 'average efficiency'
-		here.energy_kwh -= dist_km / data.car.avg_kwh_km;		
+		here.energy_kwh -= dist_km / data.car.avg_kwh_km;
 	}
 
 	auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
@@ -99,9 +112,13 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 		// or are out of bounds
 		if (_r < 0 || _r >= data.map_r) { continue; }
 		if (_c < 0 || _c >= data.map_c) { continue; }
+
+		// skip unvisited, and visited in this iteration or future
 		if (!data.map[_r][_c].visited) { continue; }
 		if (data.map[_r][_c].visited >= iteration) { continue; }
-	
+
+		// compute distance as the difference of the two cell's 3d ecef
+		// coordinates
 		auto d_coord = data.map[_r][_c].ecef_location - here.ecef_location;
 		auto mag = d_coord.mag();
 
@@ -118,7 +135,7 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 	dist_km /= samples;
 	d_elevation_m /= samples;
 
-	cell_energy_expenditure(here, data, d_elevation_m, dist_km);
+	cell_energy_expenditure(here, data, {}, d_elevation_m, dist_km);
 
 	here.visited = iteration;
 }
@@ -126,12 +143,22 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 
 void estimate_cell_path(est_data& data, const rohm::trip trip)
 {
+	// rohm::topo topo("data", data.map_win);
 	auto has_speeds = trip.waypoints.size() == trip.avg_speed_km_h.size();
 
-	for (auto i = 0; i < trip.waypoints.size(); i++)
+	for (auto i = 1; i < trip.waypoints.size(); i++)
 	{
-		auto speed = has_speeds ? trip.avg_speed_km_h[i];
+		auto cur_waypoint_cell = cell_at_coord(data, trip.waypoints[i - 1]);
+		auto next_waypoint_cell = cell_at_coord(data, trip.waypoints[i]);
+		auto speed_km_h = trip.avg_speed_km_h[i];
 
+		// TODO
+		auto d_elevation_m = next_waypoint_cell->elevation_m - cur_waypoint_cell->elevation_m;
+
+
+		size_t wp_r, wp_c;
+		coord_to_idx(data.map_c, data.map_r, data.map_win, cur_waypoint_cell->gcs_location, wp_r, wp_c);
+		estimate_cell_eval(data, wp_r, wp_c, i + 1);
 	}
 }
 
@@ -162,39 +189,19 @@ void rohm::estimate(
 	estimate_cell** map,
 	estimate_params params)
 {
-
-	static const char* TILE_NAMES[2][4] = {
-		{ "A1", "B1", "C1", "D1" },
-		{ "A2", "B2", "C2", "D2" },
-	};
-
 	est_data data;
 	data.map_r = map_r;
 	data.map_c = map_c;
 	data.map = map;
 	data.car = params.car;
 
-	uint16 samp_per_pixel, bits_per_sample;
-	for (size_t i = 0; i < 4; i++)
-	{ // load tiles
-		char path[128];
-		size_t r = 0, c = 0;
-
-		get_tile_idx(params.win.corner(i), r, c);
-		snprintf(path, sizeof(path), "data/%s.tif", TILE_NAMES[r][c]);
-
-		if (data.tiles[r][c] != nullptr) { continue; }
-
-		data.tiles[r][c] = TIFFOpen(path, "r");
-		uint32 config;
-		TIFFGetField(data.tiles[r][c], TIFFTAG_PLANARCONFIG, &config);
-		TIFFGetField(data.tiles[r][c], TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
-		TIFFGetField(data.tiles[r][c], TIFFTAG_SAMPLESPERPIXEL, &samp_per_pixel);
-
-		printf("loaded tile: '%s'\n", path);
-		printf("bits_per_sample: %d samp_per_pixel: %d\n", bits_per_sample, samp_per_pixel);
+	// if a trip has been provided recalculate the window from waypoints
+	if (!params.trip.is_empty())
+	{
+		params.win = window_from_path(params.trip.waypoints);
 	}
 
+	rohm::topo topo("data", params.win);
 
 	{ // populate the estimate map with coordinates and elevations
 		for (size_t r = 0; r < map_r; r++)
@@ -209,26 +216,9 @@ void rohm::estimate(
 			// convert GCS to ECEF 3D vector
 			data.map[r][c].ecef_location = gcs_to_ecef_km(data.map[r][c].gcs_location);
 
-			// query for correct tiff given the coordinate
-			size_t t_r, t_c;
-			uint32 t_w, t_h;
-			get_tile_idx(data.map[r][c].gcs_location, t_r, t_c);
-			TIFFGetField(data.tiles[t_r][t_c], TIFFTAG_IMAGEWIDTH, &t_w);
-			TIFFGetField(data.tiles[t_r][t_c], TIFFTAG_IMAGELENGTH, &t_h);
-
-			auto win = get_tile_window(t_r, t_c);
-			TIFF* tif = data.tiles[t_r][t_c];
-			coord_to_idx(t_w, t_h, win, data.map[r][c].gcs_location, t_r, t_c);
-
-			tdata_t buf = _TIFFmalloc(TIFFScanlineSize(tif));
-
-			TIFFReadScanline(tif, buf, t_r + r, samp_per_pixel);
-
-			data.map[r][c].elevation_m = ((uint8_t*)buf)[t_c] * (6400.0 / 255.0);
+			data.map[r][c].elevation_m = topo.elevation_m(data.map[r][c].gcs_location);
 			data.map[r][c].visited = 0;
 			data.map[r][c].energy_kwh = 0;
-
-			_TIFFfree(buf);
 		}
 	}
 
@@ -236,22 +226,20 @@ void rohm::estimate(
 	size_t r, c;
 	coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
-	data.map[r][c].visited = 1;	
+	data.map[r][c].visited = 1;
 
-	for (int itr = 1; !data.map[0][0].visited; itr++)
-	for (size_t r = 0; r < map_r; r++)
-	for (size_t c = 0; c < map_c; c++)
+	if (!params.trip.is_empty())
 	{
-		estimate_cell_eval(data, r, c, itr);
+		estimate_cell_path(data, params.trip);
 	}
-
-
-finish:
-	for (size_t r = 2; r--;)
-	for (size_t c = 4; c--;)
+	else
 	{
-		if (nullptr == data.tiles[r][c]) { continue; }
-		TIFFClose(data.tiles[r][c]);
+		for (int itr = 1; !data.map[0][0].visited; itr++)
+		for (size_t r = 0; r < map_r; r++)
+		for (size_t c = 0; c < map_c; c++)
+		{
+			estimate_cell_eval(data, r, c, itr);
+		}
 	}
 }
 

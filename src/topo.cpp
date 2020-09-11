@@ -62,3 +62,16 @@ float topo::elevation_m(const rohm::coord& gcs_coord)
 
     return ((uint8_t*)line_buf)[t_c] * (6400.0 / 255.0);
 }
+
+
+const TIFF* topo::tif_at_coord(const rohm::coord& gcs_coord)
+{
+    size_t t_r, t_c;
+    uint32 t_w, t_h;
+    get_tile_idx(gcs_coord, t_r, t_c);
+    TIFFGetField(tiles[t_r][t_c], TIFFTAG_IMAGEWIDTH, &t_w);
+    TIFFGetField(tiles[t_r][t_c], TIFFTAG_IMAGELENGTH, &t_h);
+
+    auto win = get_tile_window(t_r, t_c);
+    return tiles[t_r][t_c];
+}

@@ -2,7 +2,7 @@ TARGET=$(shell ${CC} -dumpmachine)
 INC+=-I../src -I../inc -I../deps/xbc/src
 LIBS+=-L../lib/$(TARGET) -L/usr/lib
 LINK+= ../lib/$(TARGET)/librohm.a -lm -ltiff
-CXX_FLAGS+= -g
+CXX_FLAGS+= -g -std=c++11 -O0
 
 TESTS=$(patsubst %.cpp,bin/%,$(wildcard *.cpp))
 
