@@ -41,8 +41,8 @@ TEST
     auto car = tesla_model3_lr;
 
     rohm::estimate(h, w, map, {
-        est_win, start, car, trip
-    });
+        est_win, start, car
+    }, trip);
 
     rohm::write_tiff("out.tif", h, w, map, car);
 

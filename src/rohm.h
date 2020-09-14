@@ -184,7 +184,7 @@ struct trip
 	std::vector<float> avg_speed_km_h;
 	std::vector<waypoint_ctx> ctx;
 
-	bool is_empty() { return 0 == waypoints.size(); }
+	bool is_empty() const { return 0 == waypoints.size(); }
 };
 
 struct estimate_params
@@ -207,7 +207,7 @@ struct estimate_cell
 	float energy_kwh;
 };
 
-void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
+void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params, const trip& trip={});
 
 void write_tiff(const std::string& path, const size_t r, const size_t c, estimate_cell** map, vehicle_params car);
 

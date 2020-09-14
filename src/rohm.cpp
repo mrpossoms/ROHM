@@ -92,7 +92,7 @@ void cell_energy_expenditure(rohm::estimate_cell& here,
 }
 
 
-void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
+void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration, float speed_km_h)
 {
 	auto& here = data.map[r][c];
 
@@ -135,7 +135,7 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration)
 	dist_km /= samples;
 	d_elevation_m /= samples;
 
-	cell_energy_expenditure(here, data, {}, d_elevation_m, dist_km);
+	cell_energy_expenditure(here, data, d_elevation_m, dist_km, speed_km_h);
 
 	here.visited = iteration;
 }
@@ -158,7 +158,7 @@ void estimate_cell_path(est_data& data, const rohm::trip trip)
 
 		size_t wp_r, wp_c;
 		coord_to_idx(data.map_c, data.map_r, data.map_win, cur_waypoint_cell->gcs_location, wp_r, wp_c);
-		estimate_cell_eval(data, wp_r, wp_c, i + 1);
+		estimate_cell_eval(data, wp_r, wp_c, i + 1, speed_km_h);
 	}
 }
 
@@ -187,7 +187,8 @@ rohm::window window_from_path(const std::vector<rohm::coord> path)
 void rohm::estimate(
 	size_t map_r, size_t map_c,
 	estimate_cell** map,
-	estimate_params params)
+	estimate_params params,
+	const trip& trip)
 {
 	est_data data;
 	data.map_r = map_r;
@@ -196,9 +197,10 @@ void rohm::estimate(
 	data.car = params.car;
 
 	// if a trip has been provided recalculate the window from waypoints
-	if (!params.trip.is_empty())
+	if (!trip.is_empty())
 	{
-		params.win = window_from_path(params.trip.waypoints);
+		params.win = window_from_path(trip.waypoints);
+		data.map_win = params.win;
 	}
 
 	rohm::topo topo("data", params.win);
@@ -228,9 +230,9 @@ void rohm::estimate(
 	data.map[r][c].energy_kwh = params.car.energy_kwh;
 	data.map[r][c].visited = 1;
 
-	if (!params.trip.is_empty())
+	if (!trip.is_empty())
 	{
-		estimate_cell_path(data, params.trip);
+		estimate_cell_path(data, trip);
 	}
 	else
 	{
@@ -238,7 +240,7 @@ void rohm::estimate(
 		for (size_t r = 0; r < map_r; r++)
 		for (size_t c = 0; c < map_c; c++)
 		{
-			estimate_cell_eval(data, r, c, itr);
+			estimate_cell_eval(data, r, c, itr, 45);
 		}
 	}
 }
