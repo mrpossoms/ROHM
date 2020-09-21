@@ -19,15 +19,16 @@ struct est_data {
 };
 
 
-inline rohm::estimate_cell* cell_at_coord(const est_data& data, rohm::coord coord)
+inline rohm::estimate_cell& cell_at_coord(const est_data& data, rohm::coord coord)
 {
 	size_t r, c;
-	coord_to_idx(data.map_c, data.map_r, data.map_win, coord, r, c);
-	return &data.map[r][c];
+	coord_to_idx(data.map_c-1, data.map_r-1, data.map_win, coord, r, c);
+	return data.map[r][c];
 }
 
 
-void cell_energy_expenditure(rohm::estimate_cell& here,
+void cell_energy_expenditure(
+	rohm::estimate_cell& here,
 	const est_data& data,
 	float d_elevation_m,
 	float dist_km,
@@ -148,17 +149,25 @@ void estimate_cell_path(est_data& data, const rohm::trip trip)
 
 	for (auto i = 1; i < trip.waypoints.size(); i++)
 	{
-		auto cur_waypoint_cell = cell_at_coord(data, trip.waypoints[i - 1]);
-		auto next_waypoint_cell = cell_at_coord(data, trip.waypoints[i]);
+		auto& cur_waypoint_cell = cell_at_coord(data, trip.waypoints[i - 1]);
+		auto& next_waypoint_cell = cell_at_coord(data, trip.waypoints[i]);
 		auto speed_km_h = trip.avg_speed_km_h[i];
 
 		// TODO
-		auto d_elevation_m = next_waypoint_cell->elevation_m - cur_waypoint_cell->elevation_m;
+		auto d_elevation_m = next_waypoint_cell.elevation_m - cur_waypoint_cell.elevation_m;
 
+		bool just_visited = !cur_waypoint_cell.visited;
 
-		size_t wp_r, wp_c;
-		coord_to_idx(data.map_c, data.map_r, data.map_win, cur_waypoint_cell->gcs_location, wp_r, wp_c);
-		estimate_cell_eval(data, wp_r, wp_c, i + 1, speed_km_h);
+		estimate_cell_eval(data, cur_waypoint_cell.r, cur_waypoint_cell.c, i + 1, speed_km_h);
+
+		// cur_waypoint_cell.energy_kwh = 60;
+		// data.map[cur_waypoint_cell.r][cur_waypoint_cell.c].energy_kwh = 60;
+
+			
+		if (just_visited)
+		{
+			printf("cur_waypoint_cell.energy_kwh: %f\n", cur_waypoint_cell.energy_kwh);
+		}
 	}
 }
 
@@ -217,7 +226,8 @@ void rohm::estimate(
 
 			// convert GCS to ECEF 3D vector
 			data.map[r][c].ecef_location = gcs_to_ecef_km(data.map[r][c].gcs_location);
-
+			data.map[r][c].r = r;
+			data.map[r][c].c = c;
 			data.map[r][c].elevation_m = topo.elevation_m(data.map[r][c].gcs_location);
 			data.map[r][c].visited = 0;
 			data.map[r][c].energy_kwh = 0;
@@ -287,9 +297,19 @@ void rohm::write_tiff(
 
 			auto elevation = map[ri][ci].elevation_m / 6400.0;
 
-			row_buf[ci].r = 255 * (1.0 - charge_percentage) * elevation;
-			row_buf[ci].g = 255 * (charge_percentage) * elevation;
-			row_buf[ci].b = 255.0 * elevation;
+			if (map[ri][ci].visited)
+			{
+				row_buf[ci].r = 255 * (1.0 - charge_percentage);// * elevation;
+				row_buf[ci].g = 255 * (charge_percentage);// * elevation;		
+				row_buf[ci].b = 0;
+			}
+			else
+			{
+				row_buf[ci].r = 255 * elevation;
+				row_buf[ci].g = 255 * elevation;
+				row_buf[ci].b = 255.0 * elevation;
+			}
+
 		}
 
     	if (TIFFWriteScanline(tif, (unsigned char*)row_buf, ri, 0) < 0) { break; }

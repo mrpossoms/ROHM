@@ -197,6 +197,7 @@ struct estimate_params
 
 struct estimate_cell
 {
+	size_t r, c;
 	int visited;
 	coord gcs_location;
 	vec<3> ecef_location;

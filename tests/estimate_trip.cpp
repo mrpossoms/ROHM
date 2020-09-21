@@ -38,7 +38,7 @@ TEST
         6.25, 0.3, 75, 1730
     };
 
-    auto car = tesla_model3_lr;
+    auto car = e_golf_2016;
 
     rohm::estimate(h, w, map, {
         est_win, start, car
