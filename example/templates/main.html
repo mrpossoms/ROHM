@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-38933930-6"></script>
+
+	<script type="text/javascript">
+// window.dataLayer = window.dataLayer || [];
+// function gtag(){dataLayer.push(arguments);}
+// gtag('js', new Date());
+// gtag('config', 'UA-38933930-6');
+	</script>
+
+	<script type="text/javascript">
+"use strict";
+
+var map, infoWindow;
+var waypoints = [];
+
+function init_map() {
+	map = new google.maps.Map(document.getElementById("map"), {
+	  center: {
+		lat: -34.397,
+		lng: 150.644
+	  },
+	  zoom: 8
+	});
+
+	infoWindow = new google.maps.InfoWindow;
+
+	map.addListener('click', (event) => {
+		var marker = new google.maps.Marker({
+			position: event.latLng,
+			map: map,
+			title: waypoints.length > 0 ? 'Stop ' + waypoints.length : 'Start' 
+		});
+
+		waypoints.push(marker);
+	})
+
+	if (navigator.geolocation)
+	{
+		navigator.geolocation.getCurrentPosition(function(position) {
+			var pos = {
+				lat: position.coords.latitude,
+				lng: position.coords.longitude
+			};
+
+			infoWindow.setPosition(pos);
+			infoWindow.setContent('Location found.');
+			infoWindow.open(map);
+			map.setCenter(pos);
+		},
+		function() {
+			handleLocationError(true, infoWindow, map.getCenter());
+		});
+	}
+	else
+	{
+		// Browser doesn't support Geolocation
+		handleLocationError(false, infoWindow, map.getCenter());
+	}
+}
+
+function handleLocationError(browserHasGeolocation, infoWindow, pos)
+{
+	infoWindow.setPosition(pos);
+	infoWindow.setContent(browserHasGeolocation ?
+	'Error: The Geolocation service failed.' :
+	'Error: Your browser doesn\'t support geolocation.');
+	infoWindow.open(map);
+}
+
+
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>
+	RΩHM - Trip planner
+	</title>
+
+	<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>-->
+	<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+</head>
+
+<body class="container-fluid">
+<header class="row">
+<h1><center><a href="/">RΩHM</a><center></h1>
+</header>
+
+<main>
+<div id="map"></div>
+</main>
+
+<footer>
+<center>
+© Kirk Roerig 2020
+</center>
+</footer>
+
+</body>
+
+	<script
+	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=init_map&libraries=&v=weekly"
+	  defer
+	></script>
+
+</html>
+

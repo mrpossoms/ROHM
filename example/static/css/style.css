@@ -1,0 +1,37 @@
+html {
+	font-family: Sans-Serif;
+	color: #333;
+	background: #fff;
+}
+
+.logo {
+	max-width:256px;
+}
+
+h1, h2, h3, body, footer {
+	margin: 0 auto;
+}
+
+h1, h2, h3 {
+	color: #666;
+}
+
+body {
+	max-width: 60em;
+	padding: 0;
+	background: #fff;
+}
+
+a:visited > h1 {
+	color: #333;
+	text-decoration: none;
+}
+
+a {
+	color: #000;
+	text-decoration: none;
+}
+
+#map {
+	height: 400px;
+}
