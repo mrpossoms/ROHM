@@ -41,8 +41,8 @@ TEST
     auto car = e_golf_2016;
 
     rohm::estimate(h, w, map, {
-        est_win, start, car
-    }, trip);
+        est_win, start, car, trip
+    });
 
     rohm::write_tiff("out.tif", h, w, map, car);
 

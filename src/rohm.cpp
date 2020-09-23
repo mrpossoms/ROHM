@@ -196,20 +196,22 @@ rohm::window window_from_path(const std::vector<rohm::coord> path)
 void rohm::estimate(
 	size_t map_r, size_t map_c,
 	estimate_cell** map,
-	estimate_params params,
-	const trip& trip)
+	estimate_params params)
 {
 	est_data data;
 	data.map_r = map_r;
 	data.map_c = map_c;
 	data.map = map;
 	data.car = params.car;
+	const auto& trip = params.path;
 
 	// if a trip has been provided recalculate the window from waypoints
 	if (!trip.is_empty())
 	{
 		params.win = window_from_path(trip.waypoints);
-		data.map_win = params.win;
+		auto& win = data.map_win = params.win;
+
+		printf("window_from_path() -> { %f, %f } - { %f, %f }\n", win.nw.lat(), win.nw.lng(), win.se.lat(), win.se.lng());
 	}
 
 	rohm::topo topo("data", params.win);

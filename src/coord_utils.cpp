@@ -55,8 +55,8 @@ bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, 
 	c -= win.nw;
 	c /= c1;
 
-	r_out = height * c.lat();
-	c_out = width * c.lng();
+	r_out = (height-1) * c.lat();
+	c_out = (width-1) * c.lng();
 
 	return true;
 }

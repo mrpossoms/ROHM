@@ -3,7 +3,7 @@ OBJS=$(patsubst src/%.cpp,src/%.cpp.o,$(wildcard src/*.cpp))
 INC+=
 LIB+=
 LINK+=-lm
-CPP_FLAGS+=-std=c++11 -g
+CPP_FLAGS+=-std=c++11 -g -fPIC
 
 src/%.cpp.o: src/%.cpp lib/$(TARG)
 	$(CXX) $(CPP_FLAGS) $(INC) $(LIB) -c $< -o $@

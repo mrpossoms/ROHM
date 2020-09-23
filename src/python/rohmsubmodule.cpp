@@ -7,32 +7,60 @@ static rohm::vehicle_params CUR_CAR;
 
 static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	PyObject* trip;
+	unsigned int map_r, map_c;
+	PyObject *trip_seq, *map_size;
 	char* kw_names[] = {
-		"trip",
-		"mass_kg",
-		"avg_kwh_km",
-		"regen_efficiency",
-		"energy_kwh",
-		NULL
+		(char*)"trip",
+		(char*)"size",
+		(char*)"mass_kg",
+		(char*)"avg_kwh_km",
+		(char*)"regen_efficiency",
+		(char*)"energy_kwh",
+		NULL,
 	};
 
 	PyArg_ParseTupleAndKeywords(
 		args,
 		kwds,
-		"Offff",
+		"OOffff",
 		kw_names,
-		&trip,
+		&trip_seq,
+		&map_size,
 		&CUR_CAR.mass_kg,
 		&CUR_CAR.avg_kwh_km,
 		&CUR_CAR.regen_efficiency,
 		&CUR_CAR.energy_kwh
 	);
 
-	printf("car mass: %f\n", CUR_CAR.mass_kg);
-	printf("car avg eff: %f\n", CUR_CAR.avg_kwh_km);
-	printf("car regen eff: %f\n", CUR_CAR.regen_efficiency);
-	printf("car energy: %f\n", CUR_CAR.energy_kwh);
+	PyArg_ParseTuple(map_size, "II", &map_c, &map_r);
+
+	// allocate the estimate map
+	rohm::estimate_cell** map = new rohm::estimate_cell*[map_r];
+	for (auto r = map_r; r--;)
+	map[r] = new rohm::estimate_cell[map_c];
+
+	// create c++ vector of coordinates from python sequence
+	rohm::estimate_params params;
+	if (PySequence_Check(trip_seq))
+	{
+		printf("trip is sequence\n");
+
+		for (Py_ssize_t i = 0; i < PySequence_Length(trip_seq); i++)
+		{
+			double lat, lng, speed_km_h;
+			auto item = PySequence_ITEM(trip_seq, i);
+			PyArg_ParseTuple(item, "ddd", &lat, &lng, &speed_km_h);
+			params.path.waypoints.push_back({lat, lng});
+			params.path.avg_speed_km_h.push_back(speed_km_h);
+			params.path.ctx.push_back({});
+		}
+	}
+	
+	params.car = CUR_CAR;
+	params.origin = params.path.waypoints[0];
+
+	rohm::estimate(map_r, map_c, map, params);
+	rohm::write_tiff("/tmp/rohmxzy.tif", map_r, map_c, map, CUR_CAR);
 
 	return PyLong_FromLong(1);
 }
