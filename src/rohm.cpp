@@ -172,16 +172,16 @@ void estimate_cell_path(est_data& data, const rohm::trip trip)
 }
 
 
-rohm::window window_from_path(const std::vector<rohm::coord> path)
+rohm::window rohm::window_from_trip(const rohm::trip& trip)
 {
-	if (path.size() == 0) return {};
+	if (trip.waypoints.size() == 0) return {};
 
 	rohm::window win = {
-		path[0], path[0]
+		trip.waypoints[0], trip.waypoints[0]
 	};
 
 	// find the bounding box for the path given
-	for (const auto& coord : path)
+	for (const auto& coord : trip.waypoints)
 	{
 		if (coord.lat() > win.nw.lat()) { win.nw.lat(coord.lat()); }
 		if (coord.lng() < win.nw.lng()) { win.nw.lng(coord.lng()); }
@@ -208,7 +208,7 @@ void rohm::estimate(
 	// if a trip has been provided recalculate the window from waypoints
 	if (!trip.is_empty())
 	{
-		params.win = window_from_path(trip.waypoints);
+		params.win = window_from_trip(trip);
 		auto& win = data.map_win = params.win;
 
 		printf("window_from_path() -> { %f, %f } - { %f, %f }\n", win.nw.lat(), win.nw.lng(), win.se.lat(), win.se.lng());

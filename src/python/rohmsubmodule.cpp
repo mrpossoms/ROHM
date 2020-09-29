@@ -66,8 +66,22 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 }
 
 
+static PyObject* rohm_window_from_path(PyObject* self, PyObject* args)
+{
+	PyObject *py_nw, *py_se;
+	PyArg_ParseTuple(args, "OO", &py_nw, &py_se);
+
+	double nw_lat, nw_lng, se_lat, se_lng;
+	PyArg_ParseTuple(py_nw, "dd", &nw_lat, &nw_lng);
+	PyArg_ParseTuple(py_se, "dd", &se_lat, &se_lng);
+
+	
+}
+
+
 static PyMethodDef ROHM_METHODS[] = {
 	{"estimate_path", (PyCFunction)rohm_estimate_path, METH_VARARGS|METH_KEYWORDS, "Compute energy consumption for a specific vehicle"},
+	{"window_from_path", (PyCFunction)rohm_window_from_path, METH_VARARGS, "Compute GCS window for sequence of path points given"},
 	{NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

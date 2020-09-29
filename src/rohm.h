@@ -210,6 +210,8 @@ struct estimate_cell
 
 void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
 
+window window_from_trip(const trip& trip);
+
 void write_tiff(const std::string& path, const size_t r, const size_t c, estimate_cell** map, vehicle_params car);
 
 }
