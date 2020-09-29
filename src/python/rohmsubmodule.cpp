@@ -68,14 +68,28 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 
 static PyObject* rohm_window_from_path(PyObject* self, PyObject* args)
 {
-	PyObject *py_nw, *py_se;
-	PyArg_ParseTuple(args, "OO", &py_nw, &py_se);
+	rohm::trip trip;
+	PyObject *trip_seq;
+	PyArg_ParseTuple(args, "O", &trip_seq);
 
-	double nw_lat, nw_lng, se_lat, se_lng;
-	PyArg_ParseTuple(py_nw, "dd", &nw_lat, &nw_lng);
-	PyArg_ParseTuple(py_se, "dd", &se_lat, &se_lng);
+	if (PySequence_Check(trip_seq))
+	{
+		printf("trip is sequence\n");
 
-	
+		for (Py_ssize_t i = 0; i < PySequence_Length(trip_seq); i++)
+		{
+			double lat, lng, speed;
+			auto item = PySequence_ITEM(trip_seq, i);
+			PyArg_ParseTuple(item, "ddd", &lat, &lng, &speed);
+			trip.waypoints.push_back({lat, lng});
+		}
+	}
+
+	auto window = rohm::window_from_trip(trip);
+	PyObject* nw = Py_BuildValue("(dd)", window.nw.lat(), window.nw.lng());
+	PyObject* se = Py_BuildValue("(dd)", window.se.lat(), window.se.lng());
+
+	return PyTuple_Pack(2, nw, se);
 }
 
 

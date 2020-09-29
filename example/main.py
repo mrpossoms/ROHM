@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask
-from flask import render_template
+from flask import render_template, send_file
 from flask import request
 
 app = Flask('ROHM', static_url_path='')
@@ -11,6 +11,9 @@ app = Flask('ROHM', static_url_path='')
 def index():
     return render_template("main.html")
 
+@app.route("/heatmap")
+def heatmap():
+    return send_file('/tmp/rohmxzy.tif')
 
 if __name__ == '__main__':
     port = 8080

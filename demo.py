@@ -14,9 +14,16 @@ for i in range(20000):
 	wp = trip[-1]
 	trip.append((wp[0] + 0.0001 * np.cos(theta), wp[1] + 0.0001 * np.sin(theta), 60))
 
+nw, se = rohm.window_from_path(trip)
+
+d_lat = int((nw[0] - se[0]) * 100)
+d_lng = int((se[1] - nw[1]) * 100)
+
+print(d_lat, d_lng)
+
 rohm.estimate_path(
 	trip=trip,
-	size=(401, 401),
+	size=(d_lng, d_lat),
 	mass_kg=2000,
 	avg_kwh_km=16,
 	regen_efficiency=0.12,
