@@ -50,19 +50,47 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 			double lat, lng, speed_km_h;
 			auto item = PySequence_ITEM(trip_seq, i);
 			PyArg_ParseTuple(item, "ddd", &lat, &lng, &speed_km_h);
-			params.path.waypoints.push_back({lat, lng});
-			params.path.avg_speed_km_h.push_back(speed_km_h);
-			params.path.ctx.push_back({});
+			params.trip.waypoints.push_back({lat, lng});
+			params.trip.avg_speed_km_h.push_back(speed_km_h);
+			params.trip.ctx.push_back({});
 		}
 	}
+
+	auto win = rohm::window_from_trip(params.trip);
 	
 	params.car = CUR_CAR;
-	params.origin = params.path.waypoints[0];
+	params.origin = params.trip.waypoints[0];
 
 	rohm::estimate(map_r, map_c, map, params);
+
+	// { // fill 
+	// 	rohm::estimate_params fill_params;
+	// 	fill_params.car = CUR_CAR;
+	// 	fill_params.origin = params.trip.waypoints[0];
+	// 	fill_params.win = win;
+	// 	rohm::estimate(map_r, map_c, map, fill_params);
+	// }
+	
 	rohm::write_tiff("/tmp/rohmxzy.tif", map_r, map_c, map, CUR_CAR);
 
-	return PyLong_FromLong(1);
+	// create a python list containing SoC for the entire trip
+	PyObject* estimated_trip = PyList_New(params.trip.waypoints.size());
+	
+	for (size_t i = 0; i < params.trip.waypoints.size(); i++)
+	{
+		size_t r, c;
+		auto& coord = params.trip.waypoints[i];
+		if (!coord_to_idx(map_c, map_r, win, coord, r, c)) { continue; }
+
+		PyObject* waypoint = Py_BuildValue("(ddd)", coord.lat(), coord.lng(), map[r][c].energy_kwh / params.car.energy_kwh);
+		PyList_SetItem(estimated_trip, i, waypoint);
+	}
+
+	// free the estimate map
+	for (auto r = map_r; r--;) { delete map[r]; }
+	delete map;
+
+	return estimated_trip;
 }
 
 

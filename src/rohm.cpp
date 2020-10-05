@@ -203,7 +203,7 @@ void rohm::estimate(
 	data.map_c = map_c;
 	data.map = map;
 	data.car = params.car;
-	const auto& trip = params.path;
+	const auto& trip = params.trip;
 
 	// if a trip has been provided recalculate the window from waypoints
 	if (!trip.is_empty())

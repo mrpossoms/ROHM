@@ -21,10 +21,12 @@ d_lng = int((se[1] - nw[1]) * 100)
 
 print(d_lat, d_lng)
 
-rohm.estimate_path(
+estimated = rohm.estimate_path(
 	trip=trip,
 	size=(d_lng, d_lat),
 	mass_kg=2000,
 	avg_kwh_km=16,
 	regen_efficiency=0.12,
 	energy_kwh=24)
+
+print(estimated)

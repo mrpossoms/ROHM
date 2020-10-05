@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-extra_compile_args = ["-Wall", "-Wextra", "-fPIC"]
+extra_compile_args = ["-Wall", "-Wextra", "-fPIC", "-g"]
 
 module1 = Extension('rohm',
                     define_macros = [('MAJOR_VERSION', '0'),

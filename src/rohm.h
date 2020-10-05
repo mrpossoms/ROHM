@@ -192,7 +192,7 @@ struct estimate_params
 	window win;
 	coord origin;
 	vehicle_params car;
-	trip path;
+	rohm::trip trip;
 };
 
 struct estimate_cell
@@ -215,3 +215,19 @@ window window_from_trip(const trip& trip);
 void write_tiff(const std::string& path, const size_t r, const size_t c, estimate_cell** map, vehicle_params car);
 
 }
+
+/**
+ * @brief      Returns the pixel index corresponding to a given coordinate in a
+ *             provided coordinate window.
+ *
+ * @param[in]  width   The width of the coordinate window in pixels.
+ * @param[in]  height  The height of the coordinate window in pixels
+ * @param[in]  win     The coordinate window in GCS coordinates
+ * @param[in]  c       The coordinate to map to an index
+ * @param      r_out   The row index out
+ * @param      c_out   The column index out
+ *
+ * @return     True if the coordinate is valid and contained in the window.
+ */
+bool coord_to_idx(size_t width, size_t height, rohm::window win, rohm::coord c, size_t& r_out, size_t& c_out);
+
