@@ -57,25 +57,17 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 	}
 
 	auto win = rohm::window_from_trip(params.trip);
-	
+
 	params.car = CUR_CAR;
 	params.origin = params.trip.waypoints[0];
 
-	rohm::estimate(map_r, map_c, map, params);
+	rohm::estimate(map_r, map_c, map, params, true);
 
-	// { // fill 
-	// 	rohm::estimate_params fill_params;
-	// 	fill_params.car = CUR_CAR;
-	// 	fill_params.origin = params.trip.waypoints[0];
-	// 	fill_params.win = win;
-	// 	rohm::estimate(map_r, map_c, map, fill_params);
-	// }
-	
 	rohm::write_tiff("/tmp/rohmxzy.tif", map_r, map_c, map, CUR_CAR);
 
 	// create a python list containing SoC for the entire trip
 	PyObject* estimated_trip = PyList_New(params.trip.waypoints.size());
-	
+
 	for (size_t i = 0; i < params.trip.waypoints.size(); i++)
 	{
 		size_t r, c;
@@ -88,7 +80,7 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 
 	// free the estimate map
 	for (auto r = map_r; r--;) { delete map[r]; }
-	delete map;
+	delete[] map;
 
 	return estimated_trip;
 }
@@ -130,11 +122,12 @@ static PyMethodDef ROHM_METHODS[] = {
 
 static struct PyModuleDef rohmmodule = {
 	PyModuleDef_HEAD_INIT,
-	"rohm",   /* name of module */
-	NULL, /* module documentation, may be NULL */
+	.m_name = "rohm",   /* name of module */
+	.m_doc = NULL, /* module documentation, may be NULL */
 	-1,       /* size of per-interpreter state of the module,
 				 or -1 if the module keeps state in global variables. */
-	ROHM_METHODS
+	.m_methods = ROHM_METHODS,
+	.m_slots = NULL,
 };
 
 

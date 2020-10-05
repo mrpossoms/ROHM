@@ -22,7 +22,7 @@ struct est_data {
 inline rohm::estimate_cell& cell_at_coord(const est_data& data, rohm::coord coord)
 {
 	size_t r, c;
-	coord_to_idx(data.map_c-1, data.map_r-1, data.map_win, coord, r, c);
+	coord_to_idx(data.map_c, data.map_r, data.map_win, coord, r, c);
 	return data.map[r][c];
 }
 
@@ -32,7 +32,8 @@ void cell_energy_expenditure(
 	const est_data& data,
 	float d_elevation_m,
 	float dist_km,
-	float speed_km_h)
+	float speed_km_h,
+	bool simplified)
 { // compute energy costs for this cell
 	const auto g = 9.80665; // m/s^2
 	const auto kmh_to_ms = 1000.0 * 3600.0;
@@ -45,7 +46,11 @@ void cell_energy_expenditure(
 	float P = 101325; // air pressure (Pa) at sea level
 
 
-	if (speed_km_h)
+	if (simplified)
+	{ // simplified using 'average efficiency'
+		here.energy_kwh -= dist_km / data.car.avg_kwh_km;
+	}
+	else
 	{ // more specific calculation using drag, and rolling-resistance
 		auto temp_k = here.temperature_c + 273.15; // convert celsius to Kelvin
 
@@ -81,10 +86,6 @@ void cell_energy_expenditure(
 		auto kwh_d = (ws_d * travel_time_s) * ws_to_kwh;
 
 	}
-	else
-	{ // simplified using 'average efficiency'
-		here.energy_kwh -= dist_km / data.car.avg_kwh_km;
-	}
 
 	auto regen_efficiency = d_elevation_m > 0 ? 1 : data.car.regen_efficiency;
 
@@ -93,7 +94,7 @@ void cell_energy_expenditure(
 }
 
 
-void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration, float speed_km_h)
+void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration, float speed_km_h, bool simplified)
 {
 	auto& here = data.map[r][c];
 
@@ -136,13 +137,13 @@ void estimate_cell_eval(est_data& data, size_t r, size_t c, int iteration, float
 	dist_km /= samples;
 	d_elevation_m /= samples;
 
-	cell_energy_expenditure(here, data, d_elevation_m, dist_km, speed_km_h);
+	cell_energy_expenditure(here, data, d_elevation_m, dist_km, speed_km_h, simplified);
 
 	here.visited = iteration;
 }
 
 
-void estimate_cell_path(est_data& data, const rohm::trip trip)
+void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 {
 	// rohm::topo topo("data", data.map_win);
 	auto has_speeds = trip.waypoints.size() == trip.avg_speed_km_h.size();
@@ -158,12 +159,12 @@ void estimate_cell_path(est_data& data, const rohm::trip trip)
 
 		bool just_visited = !cur_waypoint_cell.visited;
 
-		estimate_cell_eval(data, cur_waypoint_cell.r, cur_waypoint_cell.c, i + 1, speed_km_h);
+		estimate_cell_eval(data, cur_waypoint_cell.r, cur_waypoint_cell.c, i + 1, speed_km_h, simplified);
 
 		// cur_waypoint_cell.energy_kwh = 60;
 		// data.map[cur_waypoint_cell.r][cur_waypoint_cell.c].energy_kwh = 60;
 
-			
+
 		if (just_visited)
 		{
 			printf("cur_waypoint_cell.energy_kwh: %f\n", cur_waypoint_cell.energy_kwh);
@@ -196,7 +197,8 @@ rohm::window rohm::window_from_trip(const rohm::trip& trip)
 void rohm::estimate(
 	size_t map_r, size_t map_c,
 	estimate_cell** map,
-	estimate_params params)
+	estimate_params params,
+	bool simplified)
 {
 	est_data data;
 	data.map_r = map_r;
@@ -244,7 +246,7 @@ void rohm::estimate(
 
 	if (!trip.is_empty())
 	{
-		estimate_cell_path(data, trip);
+		estimate_cell_path(data, trip, simplified);
 	}
 	else
 	{
@@ -252,7 +254,7 @@ void rohm::estimate(
 		for (size_t r = 0; r < map_r; r++)
 		for (size_t c = 0; c < map_c; c++)
 		{
-			estimate_cell_eval(data, r, c, itr, 45);
+			estimate_cell_eval(data, r, c, itr, 45, simplified);
 		}
 	}
 }
@@ -302,7 +304,7 @@ void rohm::write_tiff(
 			if (map[ri][ci].visited)
 			{
 				row_buf[ci].r = 255 * (1.0 - charge_percentage);// * elevation;
-				row_buf[ci].g = 255 * (charge_percentage);// * elevation;		
+				row_buf[ci].g = 255 * (charge_percentage);// * elevation;
 				row_buf[ci].b = 0;
 			}
 			else

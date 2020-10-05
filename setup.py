@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-extra_compile_args = ["-Wall", "-Wextra", "-fPIC", "-g"]
+extra_compile_args = ["-Wall", "-Wextra", "-fPIC", "-g", "-std=c++11"]
 
 module1 = Extension('rohm',
                     define_macros = [('MAJOR_VERSION', '0'),
@@ -8,7 +8,7 @@ module1 = Extension('rohm',
                     extra_compile_args=extra_compile_args,
                     include_dirs = ['/usr/local/include', 'src'],
                     libraries = ['rohm', 'tiff'],
-                    library_dirs = ['/usr/local/lib', 'lib/x86_64-linux-gnu'],
+                    library_dirs = ['/usr/local/lib', 'lib/x86_64-linux-gnu', 'lib/x86_64-apple-darwin19.3.0'],
                     sources = ['src/python/rohmsubmodule.cpp'])
 
 setup (name = 'ROHM',

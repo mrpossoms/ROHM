@@ -28,7 +28,7 @@ def estimate():
     theta = np.random.uniform() * (3.14159 * 2)
 
     trip = [(start[0], start[1], 60)]
-    
+
     for i in range(40000):
         theta += np.random.normal(0, 0.01)
         wp = trip[-1]
@@ -45,8 +45,8 @@ def estimate():
     estimated = rohm.estimate_path(
         trip=trip,
         size=(d_lng, d_lat),
-        mass_kg=2000,
-        avg_kwh_km=16,
+        mass_kg=1536.36,
+        avg_kwh_km=5.51,
         regen_efficiency=0.12,
         energy_kwh=24)
 
@@ -72,5 +72,5 @@ if __name__ == '__main__':
     except KeyError:
         print('Not reloading view templates')
 
-    app.run(port=port, host='0.0.0.0')
+    app.run(port=port, host='0.0.0.0', ssl_context='adhoc')
 

@@ -43,7 +43,7 @@ struct vec
 
 	bool operator==(const vec<N>& o)
 	{
-		for(int i = 0; i < N; i++)
+		for(unsigned int i = 0; i < N; i++)
 		{
 			if (o.v[i] != v[i]) { return false; }
 		}
@@ -52,7 +52,7 @@ struct vec
 
 	vec<N>& operator=(const vec<N>& o)
 	{
-		for(int i = 0; i < N; i++)
+		for(unsigned int i = 0; i < N; i++)
 		{
 			v[i] = o.v[i];
 		}
@@ -208,7 +208,7 @@ struct estimate_cell
 	float energy_kwh;
 };
 
-void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params);
+void estimate(size_t r, size_t c, estimate_cell** energy_map_out, estimate_params params, bool simplified=false);
 
 window window_from_trip(const trip& trip);
 

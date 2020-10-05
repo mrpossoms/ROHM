@@ -22,8 +22,8 @@ var waypoints = [];
 function init_map() {
 	map = new google.maps.Map(document.getElementById("map"), {
 	  center: {
-		lat: -34.397,
-		lng: 150.644
+		lat: 0,
+		lng: 0
 	  },
 	  zoom: 8
 	});
@@ -34,7 +34,7 @@ function init_map() {
 		var marker = new google.maps.Marker({
 			position: event.latLng,
 			map: map,
-			title: waypoints.length > 0 ? 'Stop ' + waypoints.length : 'Start' 
+			title: waypoints.length > 0 ? 'Stop ' + waypoints.length : 'Start'
 		});
 
 		waypoints.push(marker);
@@ -78,7 +78,7 @@ function init_map() {
 		// });
 		// heatmap.setMap(map);
 
-		
+
 		for (var i = 0; i < data.length - 1; i++)
 		{
 			var flightPlanCoordinates = [];
@@ -89,6 +89,8 @@ function init_map() {
 			var r = parseInt((1 - soc) * 255).toString(16);
 			if (g.length < 2) { g += '0'; }
 			if (r.length < 2) { r += '0'; }
+
+			if (soc <= 0) { break; }
 
 			console.log(data[i][2] + " #" + r + g + "00");
 
