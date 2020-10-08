@@ -160,14 +160,30 @@ void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 			int d_r = (int)(next_waypoint_cell.r - r);
 			int d_c = (int)(next_waypoint_cell.c - c);
 
-			auto is_vertical = abs(d_c) > abs(d_r);
-			auto error = d_c / (float)d_r;
+			auto is_vertical = abs(d_r) > abs(d_c);
 
+			if (is_vertical)
+			{ // if the line is more vertical than horizontal then swap the two
+			  // deltas to avoid the vertical case
+				std::swap<decltype(d_c)>(d_c, d_r);
+				std::swap<decltype(r)>(r, c);
+				std::swap<decltype(next_r)>(next_r, next_c);
+			}
 
-			auto d_m = is_vertical ? d_r : d_c;
-			for (int i = (is_vertical ? r : c); i != (is_vertical ? next_r : next_c); i += d_m / abs(d_m) )
+			float error = 0;
+			float d_error = d_c / (float)d_r;
+
+			for (; c != next_c; c += d_c / abs(d_c))
 			{
-				// TODO
+				// "PLOT"
+				error += d_error;
+
+				if (fabs(error) > 0.5)
+				{
+					auto sign = d_r / abs(d_r);
+					r += sign;
+					error -= sign;
+				}
 			}
 		}
 

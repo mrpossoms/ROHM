@@ -7,6 +7,7 @@ static rohm::vehicle_params CUR_CAR;
 
 static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	(void)self;
 	unsigned int map_r, map_c;
 	PyObject *trip_seq, *map_size;
 	char* kw_names[] = {
@@ -88,6 +89,7 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 
 static PyObject* rohm_window_from_path(PyObject* self, PyObject* args)
 {
+	(void)self;
 	rohm::trip trip;
 	PyObject *trip_seq;
 	PyArg_ParseTuple(args, "O", &trip_seq);
