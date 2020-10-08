@@ -154,16 +154,27 @@ void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 		auto& next_waypoint_cell = cell_at_coord(data, trip.waypoints[i]);
 		auto speed_km_h = trip.avg_speed_km_h[i];
 
+		{ // brensenham's line algo to fill cells between waypoints
+			auto r = cur_waypoint_cell.r, c = cur_waypoint_cell.c;
+			auto next_r = next_waypoint_cell.r, next_c = next_waypoint_cell.c;
+			int d_r = (int)(next_waypoint_cell.r - r);
+			int d_c = (int)(next_waypoint_cell.c - c);
+
+			auto is_vertical = abs(d_c) > abs(d_r);
+			auto error = d_c / (float)d_r;
+
+
+			auto d_m = is_vertical ? d_r : d_c;
+			for (int i = (is_vertical ? r : c); i != (is_vertical ? next_r : next_c); i += d_m / abs(d_m) )
+			{
+				// TODO
+			}
+		}
+
 		// TODO
 		auto d_elevation_m = next_waypoint_cell.elevation_m - cur_waypoint_cell.elevation_m;
-
 		bool just_visited = !cur_waypoint_cell.visited;
-
 		estimate_cell_eval(data, cur_waypoint_cell.r, cur_waypoint_cell.c, i + 1, speed_km_h, simplified);
-
-		// cur_waypoint_cell.energy_kwh = 60;
-		// data.map[cur_waypoint_cell.r][cur_waypoint_cell.c].energy_kwh = 60;
-
 
 		if (just_visited)
 		{
