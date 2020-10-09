@@ -34,19 +34,20 @@ function make_estimate(origin, destination)
 			var route_coords = [];
 			route_coords.push({lat: data[i][0], lng: data[i][1]}, {lat: data[i+1][0], lng: data[i+1][1]});
 
-			var soc = Math.max(0, data[i][2]);
-			var g = parseInt(soc * 255).toString(16);
-			var r = parseInt((1 - soc) * 255).toString(16);
+			var soc = parseInt(Math.max(0, data[i][2]) * 100);
+			var g = parseInt(soc * 2.55).toString(16);
+			var r = parseInt((100 - soc) * 2.55).toString(16);
 			if (g.length < 2) { g += '0'; }
 			if (r.length < 2) { r += '0'; }
 
-			if (i == 0 || i == data.length / 2 || i == data.length - 2)
+			if (i == 0 || i == parseInt(data.length / 2) || soc == 0 || i ==
+        data.length - 2)
 			{
-				var soc = new google.maps.InfoWindow;
-				soc.setPosition({lat: data[i][0], lng: data[i][1]});
-				soc.setContent(parseInt(100 * data[i][2]) + '% 🔋' );
-				soc.open(map);
-				ui.soc_icons.push(soc);
+				var soc_marker = new google.maps.InfoWindow;
+				soc_marker.setPosition({lat: data[i][0], lng: data[i][1]});
+				soc_marker.setContent(parseInt(100 * data[i][2]) + '% 🔋' );
+				soc_marker.open(map);
+				ui.soc_icons.push(soc_marker);
 			}
 
 			if (soc <= 0) { break; }

@@ -18,7 +18,7 @@ lib/$(TARG)/librohm.a: $(OBJS)
 librohm: lib/$(TARG)/librohm.a
 	@echo "Built librohm"
 
-submodule:
+submodule: librohm
 	python setup.py build --force 
 	python setup.py install
 
