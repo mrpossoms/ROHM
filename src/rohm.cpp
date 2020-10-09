@@ -22,8 +22,7 @@ struct est_data {
 inline rohm::estimate_cell& cell_at_coord(const est_data& data, rohm::coord coord)
 {
 	size_t r, c;
-	// TODO: this subtraction doesn't seem right 
-	coord_to_idx(data.map_c - 1, data.map_r - 1, data.map_win, coord, r, c);
+	coord_to_idx(data.map_c, data.map_r, data.map_win, coord, r, c);
 	return data.map[r][c];
 }
 
@@ -171,7 +170,7 @@ void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 
 				auto d_elevation_m = next_waypoint_cell.elevation_m * (1.f - t) - cur_waypoint_cell.elevation_m * t;
 				bool just_visited = !cur_waypoint_cell.visited;
-				estimate_cell_eval(data, _c, _r, itr + 1, speed_km_h, simplified);
+				estimate_cell_eval(data, _r, _c, itr + 1, speed_km_h, simplified);
 				itr += 1;
 			}
 		}

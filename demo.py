@@ -10,7 +10,7 @@ theta = np.random.uniform() * (3.14159 * 2)
 trip = [(start[0], start[1], 60)]
 
 for i in range(20):
-	theta += np.random.normal(0, 0.1)
+	theta += np.random.normal(0, 0.5)
 	wp = trip[-1]
 	trip.append((wp[0] + 0.1 * np.cos(theta), wp[1] + 0.1 * np.sin(theta), 60))
 

@@ -19,7 +19,8 @@ librohm: lib/$(TARG)/librohm.a
 	@echo "Built librohm"
 
 submodule:
-	python setup.py build install
+	python setup.py build --force 
+	python setup.py install
 
 clean:
 	rm src/*.o

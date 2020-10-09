@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import rohm
+from trip import Leg
 
 from flask import Flask
 from flask import render_template, send_file, jsonify
@@ -17,22 +18,29 @@ def index():
 def path():
     return ""
 
-@app.route("/estimate")
-def estimate():
+@app.route("/<string:origin>/<string:dest>/estimate")
+def estimate(origin, dest):
     global LAST_BOUNDS
 
-    start = np.array([ 40.142727, -105.101341 ])
-    nw = start + np.array([ 1.6, -1.6 ])
-    se = start + np.array([ -1.6, 1.6 ])
+    trip = Leg(origin, dest).waypoints()
 
-    theta = np.random.uniform() * (3.14159 * 2)
+    for i in range(len(trip)):
+        trip[i] += (60,)
+        
+    print(trip)
 
-    trip = [(start[0], start[1], 60)]
+    # start = np.array([ 40.142727, -105.101341 ])
+    # nw = start + np.array([ 1.6, -1.6 ])
+    # se = start + np.array([ -1.6, 1.6 ])
 
-    for i in range(40000):
-        theta += np.random.normal(0, 0.01)
-        wp = trip[-1]
-        trip.append((wp[0] + 0.0001 * np.cos(theta), wp[1] + 0.0001 * np.sin(theta), 60))
+    # theta = np.random.uniform() * (3.14159 * 2)
+
+    # trip = [(start[0], start[1], 60)]
+
+    # for i in range(40000):
+    #     theta += np.random.normal(0, 0.01)
+    #     wp = trip[-1]
+    #     trip.append((wp[0] + 0.0001 * np.cos(theta), wp[1] + 0.0001 * np.sin(theta), 60))
 
     nw, se = rohm.window_from_path(trip)
     LAST_BOUNDS = (nw, se)
@@ -54,7 +62,7 @@ def estimate():
     for i in range(len(estimated) // 60):
         reduced.append(estimated[i * 60])
 
-    return jsonify(reduced)
+    return jsonify(estimated)
 
 
 @app.route("/heatmap")

@@ -3,10 +3,10 @@ import json
 import polyline
 API_KEY='AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE'
 
-class Trip(object):
+class Leg(object):
     """docstring for trip"""
     def __init__(self, origin_str, dest_str):
-        super(Trip, self).__init__()
+        super(Leg, self).__init__()
         self.origin = origin_str.replace(' ', ',')
         self.dest = dest_str.replace(' ', ',')
 
@@ -27,4 +27,4 @@ class Trip(object):
 
 
 if __name__ == '__main__':
-    print(Trip('Longmont CO', 'Lyons CO').waypoints())
+    print(Leg('Longmont CO', 'Lyons CO').waypoints())

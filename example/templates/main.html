@@ -17,7 +17,45 @@
 "use strict";
 
 var map, infoWindow;
-var waypoints = [];
+
+var ui = {
+	route_lines: [],
+	waypoints: [],
+};
+
+function make_estimate(origin, destination)
+{
+	$.get(origin + "/" + destination + "/estimate", function(data) {
+		console.log(data);
+
+		for (var i = 0; i < data.length - 1; i++)
+		{
+			var route_coords = [];
+			route_coords.push({lat: data[i][0], lng: data[i][1]}, {lat: data[i+1][0], lng: data[i+1][1]});
+
+			var soc = Math.max(0, data[i][2]);
+			var g = parseInt(soc * 255).toString(16);
+			var r = parseInt((1 - soc) * 255).toString(16);
+			if (g.length < 2) { g += '0'; }
+			if (r.length < 2) { r += '0'; }
+
+			if (soc <= 0) { break; }
+
+			console.log(data[i][2] + " #" + r + g + "00");
+
+			  const route_path = new google.maps.Polyline({
+			    path: route_coords,
+			    geodesic: true,
+			    strokeColor: "#" + r + g + "00",
+			    strokeOpacity: 1.0,
+			    strokeWeight: 2,
+			  });
+			  route_path.setMap(map);
+
+			ui.route_lines.push(route_path);
+		}
+	});
+}
 
 function init_map() {
 	map = new google.maps.Map(document.getElementById("map"), {
@@ -34,10 +72,17 @@ function init_map() {
 		var marker = new google.maps.Marker({
 			position: event.latLng,
 			map: map,
-			title: waypoints.length > 0 ? 'Stop ' + waypoints.length : 'Start'
+			title: ui.waypoints.length > 0 ? 'Stop ' + ui.waypoints.length : 'Start'
 		});
+		marker.position.str = function() {
+			return marker.position.lat() + "," + marker.position.lng(); 
+		};
+		ui.waypoints.push(marker);
 
-		waypoints.push(marker);
+		if (ui.waypoints.length == 2)
+		{
+			make_estimate(ui.waypoints[0].position.str(), ui.waypoints[1].position.str());
+		}
 	})
 
 	if (navigator.geolocation)
@@ -63,47 +108,7 @@ function init_map() {
 		handleLocationError(false, infoWindow, map.getCenter());
 	}
 
-	$.get("estimate", function(data) {
-		console.log(data);
 
-		// var heatMapData = [];
-
-		// for (var i = 0; i < data.length; i++)
-		// {
-		// 	heatMapData.push({location: new google.maps.LatLng(data[i][0], data[i][1]), weight: 1 - data[i][2]})
-		// }
-
-		// var heatmap = new google.maps.visualization.HeatmapLayer({
-		// 	data: heatMapData
-		// });
-		// heatmap.setMap(map);
-
-
-		for (var i = 0; i < data.length - 1; i++)
-		{
-			var flightPlanCoordinates = [];
-			flightPlanCoordinates.push({lat: data[i][0], lng: data[i][1]}, {lat: data[i+1][0], lng: data[i+1][1]});
-
-			var soc = Math.max(0, data[i][2]);
-			var g = parseInt(soc * 255).toString(16);
-			var r = parseInt((1 - soc) * 255).toString(16);
-			if (g.length < 2) { g += '0'; }
-			if (r.length < 2) { r += '0'; }
-
-			if (soc <= 0) { break; }
-
-			console.log(data[i][2] + " #" + r + g + "00");
-
-			  const flightPath = new google.maps.Polyline({
-			    path: flightPlanCoordinates,
-			    geodesic: true,
-			    strokeColor: "#" + r + g + "00",
-			    strokeOpacity: 1.0,
-			    strokeWeight: 2,
-			  });
-			  flightPath.setMap(map);
-		}
-	});
 }
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos)
