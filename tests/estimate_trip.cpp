@@ -20,9 +20,9 @@ TEST
     est_win.se = se;
 
     rohm::trip trip;
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i <= 20; i++)
     {
-        float w = i / 1000.f;
+        float w = i / 20.f;
         auto wp = start * (1 - w) + se * w;
 
         trip.waypoints.push_back(wp);

@@ -2,6 +2,7 @@
 #include <Python.h>
 #include "rohm.h"
 
+
 static PyObject *ROHM_ERROR;
 static rohm::vehicle_params CUR_CAR;
 
@@ -16,7 +17,7 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 		(char*)"mass_kg",
 		(char*)"avg_kwh_km",
 		(char*)"regen_efficiency",
-		(char*)"energy_kwh",
+		(char*)"energy_kwh", 
 		NULL,
 	};
 

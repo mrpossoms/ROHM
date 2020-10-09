@@ -14,9 +14,12 @@ lib/$(TARG):
 lib/$(TARG)/librohm.a: $(OBJS)
 	ar -crs $@ $^
 
-.PHONY: librohm clean
+.PHONY: librohm clean submodule
 librohm: lib/$(TARG)/librohm.a
 	@echo "Built librohm"
+
+submodule:
+	python setup.py build install
 
 clean:
 	rm src/*.o

@@ -22,7 +22,8 @@ struct est_data {
 inline rohm::estimate_cell& cell_at_coord(const est_data& data, rohm::coord coord)
 {
 	size_t r, c;
-	coord_to_idx(data.map_c, data.map_r, data.map_win, coord, r, c);
+	// TODO: this subtraction doesn't seem right 
+	coord_to_idx(data.map_c - 1, data.map_r - 1, data.map_win, coord, r, c);
 	return data.map[r][c];
 }
 
@@ -148,6 +149,7 @@ void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 	// rohm::topo topo("data", data.map_win);
 	auto has_speeds = trip.waypoints.size() == trip.avg_speed_km_h.size();
 
+	int itr = 0;
 	for (auto i = 1; i < trip.waypoints.size(); i++)
 	{
 		auto& cur_waypoint_cell = cell_at_coord(data, trip.waypoints[i - 1]);
@@ -155,47 +157,27 @@ void estimate_cell_path(est_data& data, const rohm::trip trip, bool simplified)
 		auto speed_km_h = trip.avg_speed_km_h[i];
 
 		{ // brensenham's line algo to fill cells between waypoints
-			auto r = cur_waypoint_cell.r, c = cur_waypoint_cell.c;
-			auto next_r = next_waypoint_cell.r, next_c = next_waypoint_cell.c;
-			int d_r = (int)(next_waypoint_cell.r - r);
-			int d_c = (int)(next_waypoint_cell.c - c);
+			long r = cur_waypoint_cell.r, c = cur_waypoint_cell.c;
+			long next_r = next_waypoint_cell.r, next_c = next_waypoint_cell.c;
+			auto d_r = (float)(next_r - r);
+			auto d_c = (float)(next_c - c);
+			auto d_mag = sqrt((d_r * d_r) + (d_c * d_c));
 
-			auto is_vertical = abs(d_r) > abs(d_c);
-
-			if (is_vertical)
-			{ // if the line is more vertical than horizontal then swap the two
-			  // deltas to avoid the vertical case
-				std::swap<decltype(d_c)>(d_c, d_r);
-				std::swap<decltype(r)>(r, c);
-				std::swap<decltype(next_r)>(next_r, next_c);
-			}
-
-			float error = 0;
-			float d_error = d_c / (float)d_r;
-
-			for (; c != next_c; c += d_c / abs(d_c))
+			for (float p = 0; p < d_mag; p+=0.5f)
 			{
-				// "PLOT"
-				error += d_error;
+				auto t = p / d_mag;
+				auto _r = (size_t)(r * (1.f - t) + next_r * t);
+				auto _c = (size_t)(c * (1.f - t) + next_c * t);
 
-				if (fabs(error) > 0.5)
-				{
-					auto sign = d_r / abs(d_r);
-					r += sign;
-					error -= sign;
-				}
+				auto d_elevation_m = next_waypoint_cell.elevation_m * (1.f - t) - cur_waypoint_cell.elevation_m * t;
+				bool just_visited = !cur_waypoint_cell.visited;
+				estimate_cell_eval(data, _c, _r, itr + 1, speed_km_h, simplified);
+				itr += 1;
 			}
 		}
 
 		// TODO
-		auto d_elevation_m = next_waypoint_cell.elevation_m - cur_waypoint_cell.elevation_m;
-		bool just_visited = !cur_waypoint_cell.visited;
-		estimate_cell_eval(data, cur_waypoint_cell.r, cur_waypoint_cell.c, i + 1, speed_km_h, simplified);
 
-		if (just_visited)
-		{
-			printf("cur_waypoint_cell.energy_kwh: %f\n", cur_waypoint_cell.energy_kwh);
-		}
 	}
 }
 
