@@ -21,6 +21,7 @@ var map, infoWindow;
 var ui = {
 	route_lines: [],
 	waypoints: [],
+	soc_icons: []
 };
 
 function make_estimate(origin, destination)
@@ -38,6 +39,15 @@ function make_estimate(origin, destination)
 			var r = parseInt((1 - soc) * 255).toString(16);
 			if (g.length < 2) { g += '0'; }
 			if (r.length < 2) { r += '0'; }
+
+			if (i == 0 || i == data.length / 2 || i == data.length - 2)
+			{
+				var soc = new google.maps.InfoWindow;
+				soc.setPosition({lat: data[i][0], lng: data[i][1]});
+				soc.setContent(parseInt(100 * data[i][2]) + '% 🔋' );
+				soc.open(map);
+				ui.soc_icons.push(soc);
+			}
 
 			if (soc <= 0) { break; }
 
@@ -57,6 +67,27 @@ function make_estimate(origin, destination)
 	});
 }
 
+function clear_map_estimate()
+{
+	for (var i = ui.route_lines.length; i--;)
+	{
+		ui.route_lines[i].setMap(null);
+	}
+	ui.route_lines = [];
+
+	for (var i = ui.waypoints.length; i--;)
+	{
+		ui.waypoints[i].setMap(null);
+	}
+	ui.waypoints = [];
+
+	for (var i = ui.soc_icons.length; i--;)
+	{
+		ui.soc_icons[i].setMap(null);
+	}
+	ui.soc_icons = [];
+}
+
 function init_map() {
 	map = new google.maps.Map(document.getElementById("map"), {
 	  center: {
@@ -69,6 +100,12 @@ function init_map() {
 	infoWindow = new google.maps.InfoWindow;
 
 	map.addListener('click', (event) => {
+		if (ui.waypoints.length >= 2)
+		{
+			clear_map_estimate();
+			return;
+		}
+
 		var marker = new google.maps.Marker({
 			position: event.latLng,
 			map: map,
@@ -108,7 +145,9 @@ function init_map() {
 		handleLocationError(false, infoWindow, map.getCenter());
 	}
 
-
+	// handle resize
+	window.onresize = function() {$('#map').height(window.innerHeight-100)}
+	window.onresize();
 }
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos)
