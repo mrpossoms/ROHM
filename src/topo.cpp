@@ -9,6 +9,8 @@ topo::topo(const std::string& base_path, rohm::window win)
         { "A2", "B2", "C2", "D2" },
     };
 
+    int loaded_r = -1, loaded_c = -1;
+
     for (size_t i = 0; i < 4; i++)
     { // load tiles
         char path[128];
@@ -25,11 +27,13 @@ topo::topo(const std::string& base_path, rohm::window win)
         TIFFGetField(tiles[r][c], TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
         TIFFGetField(tiles[r][c], TIFFTAG_SAMPLESPERPIXEL, &samp_per_pixel);
 
+        loaded_r = r; loaded_c = c;
+
         printf("loaded tile: '%s'\n", path);
         printf("bits_per_sample: %d samp_per_pixel: %d\n", bits_per_sample, samp_per_pixel);
     }
 
-    line_buf = _TIFFmalloc(TIFFScanlineSize(tiles[0][0]));
+    line_buf = _TIFFmalloc(TIFFScanlineSize(tiles[loaded_r][loaded_c]));
 }
 
 

@@ -26,7 +26,7 @@ def estimate(origin, dest):
 
     for i in range(len(trip)):
         trip[i] += (60,)
-        
+
     print(trip)
 
     # start = np.array([ 40.142727, -105.101341 ])
@@ -45,8 +45,8 @@ def estimate(origin, dest):
     nw, se = rohm.window_from_path(trip)
     LAST_BOUNDS = (nw, se)
 
-    d_lat = int((nw[0] - se[0]) * 100)
-    d_lng = int((se[1] - nw[1]) * 100)
+    d_lat = int((nw[0] - se[0]) * 200)
+    d_lng = int((se[1] - nw[1]) * 200)
 
     print(d_lat, d_lng)
 
@@ -57,10 +57,6 @@ def estimate(origin, dest):
         avg_kwh_km=5.51,
         regen_efficiency=0.12,
         energy_kwh=24)
-
-    reduced = []
-    for i in range(len(estimated) // 60):
-        reduced.append(estimated[i * 60])
 
     return jsonify(estimated)
 
