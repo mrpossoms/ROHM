@@ -7,7 +7,7 @@ from flask import Flask
 from flask import render_template, send_file, jsonify
 from flask import request
 
-app = Flask('ROHM', static_url_path='')
+app = Flask('ROHM', static_folder="static")
 LAST_BOUNDS = ()
 
 @app.route("/")
@@ -27,8 +27,6 @@ def estimate(origin, dest):
     for i in range(len(trip)):
         trip[i] += (60,)
 
-    print(trip)
-
     # start = np.array([ 40.142727, -105.101341 ])
     # nw = start + np.array([ 1.6, -1.6 ])
     # se = start + np.array([ -1.6, 1.6 ])
@@ -45,8 +43,8 @@ def estimate(origin, dest):
     nw, se = rohm.window_from_path(trip)
     LAST_BOUNDS = (nw, se)
 
-    d_lat = int((nw[0] - se[0]) * 200)
-    d_lng = int((se[1] - nw[1]) * 200)
+    d_lat = max(1, int((nw[0] - se[0]) * 200))
+    d_lng = max(1, int((se[1] - nw[1]) * 200))
 
     print(d_lat, d_lng)
 
@@ -60,10 +58,6 @@ def estimate(origin, dest):
 
     return jsonify(estimated)
 
-
-@app.route("/heatmap")
-def heatmap():
-    return send_file('/tmp/rohmxzy.tif')
 
 if __name__ == '__main__':
     port = 8080
