@@ -36,3 +36,14 @@ a {
 	height: 800px;
 	width: 100%;
 }
+
+#rohm-ui-col {
+	position: relative;
+	width: 90px;
+	height: 180px
+}
+
+.rohm-button {
+	width: 90px;
+	height: 90px;
+}
