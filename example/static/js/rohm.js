@@ -2,6 +2,7 @@ var rohm = {
 	estimate: {},
 	ui: {
 		map: {},
+		error: {}
 	}
 };
 
@@ -48,6 +49,9 @@ rohm.estimate = {
 
 				rohm.ui.map.route_lines.push(route_path);
 			}
+		})
+		.fail(function(e) {
+			rohm.ui.error.show("An error occurred while calculating route");	
 		});
 	},
 	clear: () => {
@@ -72,6 +76,16 @@ rohm.estimate = {
 	}
 };
 
+
+rohm.ui.error = {
+	show: (reason) => {
+		$('#modal-error-text').text(reason);
+
+		$('#modal-error').modal({
+			fadeDuration: 100
+		});
+	}
+};
 
 rohm.ui.map = {
 	inst: null,

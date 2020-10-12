@@ -14,9 +14,10 @@ LAST_BOUNDS = ()
 def index():
     return render_template("main.html")
 
-@app.route("/path")
-def path():
-    return ""
+@app.route("/modal/cars")
+def cars():
+    return render_template("modal/cars.html")
+
 
 @app.route("/<string:origin>/<string:dest>/estimate")
 def estimate(origin, dest):
