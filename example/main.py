@@ -15,8 +15,34 @@ def index():
     return render_template("main.html")
 
 @app.route("/modal/cars")
-def cars():
+def modal_cars():
     return render_template("modal/cars.html")
+
+@app.route("/search/cars/<string:query>")
+def search_cars(query):
+    from fuzzysearch import find_near_matches
+    import json
+
+    all_cars = json.load(open('data/cars.json', 'r'))
+    matches = []
+
+    # evaluate closeness of string match against all cars
+    for car_name in all_cars:
+        match = find_near_matches("volkswagen", car_name, max_l_dist=1)
+
+        if len(match) > 0:
+            matches.append(all_cars[car_name])
+            matches[-1]['name'] = car_name
+            matches[-1]['dist'] = match[0].dist
+
+    # sort for by 'distance'
+    sorted(matches, key=lambda car: car['dist'])
+
+    print(matches)
+
+    return json.dumps(matches)
+
+
 
 
 @app.route("/<string:origin>/<string:dest>/estimate")

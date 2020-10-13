@@ -8,6 +8,12 @@ html {
 	max-width:256px;
 }
 
+.rohm-ui-field {
+    display: flex;
+    justify-content: space-between;
+    margin: .5rem;
+}
+
 h1, h2, h3, body, footer {
 	margin: 0 auto;
 }

@@ -5,6 +5,52 @@
 {% block title %}Pick your whip{% endblock %}
 
 {% block content %}
+<input id="text-car-query" type="text" placeholder="Carmobile 350 2020" list="list-car-matches"/>
+<datalist id="list-car-matches"></datalist>
+
+<fieldset id="fieldset-specs">
+<legend>Don't see your ride here? Input its specs!</legend>
+
+<div class="rohm-ui-field">
+<label for="battery-size">Battery size (kwh)</label>
+<input id="text-battery-size" type="text" name="battery-size"/>	
+</div>
+
+<div class="rohm-ui-field">
+<label for="vehicle-weight">Vehicle weight (kg)</label>
+<input id="text-vehicle-weight" type="text" name="vehicle-weight"/>
+</div>
+
+<div class="rohm-ui-field">
+<label for="regen-efficiency">Regen breaking efficiency (%)</label>
+<input id="text-regen-efficiency" type="text" name="regen-efficiency"/>	
+</div>
+</fieldset>
+
+<button id="button-accept">Accept</button>
+
+<script type="text/javascript">
+
+	// $('#fieldset-specs')
+
+	$('#text-car-query').change((event) => {
+		console.log('searching for: ' + this.value);
+		$.get('/search/cars/' + this.value, (data) => {
+			console.log(data);
+
+			var matches = $('#list-car-matches').empty();
+
+			for (var i = 0; i < data.length; i++)
+			{
+				matches.append($('<option></option>').attr('value', data[i].name));
+			}
+		}, 'json');
+	});
+
+	$('#button-accept').click(() => {
+		alert('accepted!');
+	});
+</script>
 
 {% endblock %}
 
