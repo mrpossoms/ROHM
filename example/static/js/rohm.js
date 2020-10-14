@@ -51,7 +51,14 @@ rohm.estimate = {
 			}
 		})
 		.fail(function(e) {
-			rohm.ui.error.show("An error occurred while calculating route");	
+			if (e.responseJSON && e.responseJSON.error)
+			{
+				rohm.ui.error.show(e.responseJSON.error);
+			}
+			else
+			{
+				rohm.ui.error.show("An error occurred while calculating route");
+			}	
 		});
 	},
 	clear: () => {
@@ -157,3 +164,21 @@ rohm.ui.map = {
 	}
 };
 
+
+document.cookie_get = (key) => {
+	var cookies = document.cookie.split('; ');
+
+	for (var i in cookies)
+	{
+		if (cookies[i].indexOf(key) >= 0)
+		{
+			const cookie = cookies[i].split('=');
+			if (cookie[0] === key)
+			{
+				return cookie[1];
+			} 
+		}
+	}
+
+	return undefined;
+};

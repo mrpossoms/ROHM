@@ -5,59 +5,74 @@
 {% block title %}Pick your whip{% endblock %}
 
 {% block content %}
-<input id="text-car-query" type="text" placeholder="Carmobile 350 2020" list="list-car-matches"/>
+<input id="text-car-query" type="text" placeholder="Carmobile 350 2020" list="list-car-matches" name="car"/>
 <datalist id="list-car-matches"></datalist>
 
 <fieldset id="fieldset-specs">
 <legend>Don't see your ride here? Input its specs!</legend>
 
 <div class="rohm-ui-field">
-<label for="battery-size">Battery size (kwh)</label>
-<input id="text-battery-size" type="text" name="battery-size"/>
+<label for="energy_kwh">Battery size (kwh)</label>
+<input id="text-energy_kwh" type="number" min=0 name="energy_kwh"/>
 </div>
 
 <div class="rohm-ui-field">
-<label for="vehicle-weight">Vehicle weight (kg)</label>
-<input id="text-vehicle-weight" type="text" name="vehicle-weight"/>
+<label for="avg_kwh_km">Average efficiency (mi/kwh)</label>
+<input id="text-avg_kwh_km" type="number" min=0.1 step=0.01 name="avg_kwh_km"/>
 </div>
 
 <div class="rohm-ui-field">
-<label for="regen-efficiency">Regen breaking efficiency (%)</label>
-<input id="text-regen-efficiency" type="text" name="regen-efficiency"/>
+<label for="mass_kg">Vehicle weight (kg)</label>
+<input id="text-mass_kg" type="number" min=1 name="mass_kg"/>
 </div>
+
+<div class="rohm-ui-field">
+<label for="regen_efficiency">Regen breaking efficiency (0% to 100%)</label>
+<input id="text-regen_efficiency" type="range" min=0 max=1 step=0.1 value=0.12 name="regen_efficiency"/>
+</div>
+
 </fieldset>
 
+<a href="#" rel="modal:close">
 <button id="button-accept">Accept</button>
+</a>
 
 <script type="text/javascript">
 
-	// $('#fieldset-specs')
+	{ // Setup the car query search box
+		$('#text-car-query').keypress((event) => {
+			console.log('searching for: ' + this.value);
+			$.get('/search/cars/' + this.value, (data) => {
+				console.log(data);
 
-	$('#text-car-query').keypress((event) => {
-		console.log('searching for: ' + this.value);
-		$.get('/search/cars/' + this.value, (data) => {
-			console.log(data);
+				var matches = $('#list-car-matches').empty();
 
-			var matches = $('#list-car-matches').empty();
-
-			for (var i = 0; i < data.length; i++)
-			{
-				matches.append($('<option></option>').attr('value', data[i].name));
-			}
-		}, 'json');
-	});
-	$('#text-car-query').change((event) => {
-		document.cookie = "car=" + event.target.value;
-	});
-
-	$('#fieldset-specs').children('.rohm-ui-field').change((event) => {
-		document.cookie=event.target.name + '=' + event.target.value;
-	});
+				for (var i = 0; i < data.length; i++)
+				{
+					matches.append($('<option></option>').attr('value', data[i].name));
+				}
+			}, 'json');
+		});
+		$('#text-car-query').change((event) => {
+			document.cookie = "car=" + event.target.value;
+		});
+		$('#text-car-query').each((i, e) => {
+			const val = document.cookie_get(e.name);
+			if (undefined !== val) { e.value = val; }
+		});		
+	}
 
 
-	$('#button-accept').click(() => {
-		alert('accepted!');
-	});
+	{ // Setup the manual input fields
+		$('#fieldset-specs .rohm-ui-field input').each((i, e) => {
+			const val = document.cookie_get(e.name);
+			if (undefined !== val) { e.value = val; }
+		});
+
+		$('#fieldset-specs').children('.rohm-ui-field').change((event) => {
+			document.cookie=event.target.name + '=' + event.target.value;
+		});		
+	}
 </script>
 
 {% endblock %}

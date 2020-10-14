@@ -1,14 +1,21 @@
 import os
 import numpy as np
 import rohm
+import json 
 from trip import Leg
 
 from flask import Flask
 from flask import render_template, send_file, jsonify
-from flask import request
+from flask import request, make_response
 
 app = Flask('ROHM', static_folder="static")
 LAST_BOUNDS = ()
+ALL_CARS = json.load(open('data/cars.json', 'r'))
+
+def error_response(message, code):
+    resp = make_response(jsonify({'error': message}))
+    resp.status_code = code or 400
+    return resp
 
 @app.route("/")
 def index():
@@ -20,18 +27,17 @@ def modal_cars():
 
 @app.route("/search/cars/<string:query>")
 def search_cars(query):
+    global ALL_CARS
     from fuzzysearch import find_near_matches
-    import json
 
-    all_cars = json.load(open('data/cars.json', 'r'))
     matches = []
 
     # evaluate closeness of string match against all cars
-    for car_name in all_cars:
+    for car_name in ALL_CARS:
         match = find_near_matches("volkswagen", car_name, max_l_dist=1)
 
         if len(match) > 0:
-            matches.append(all_cars[car_name])
+            matches.append(ALL_CARS[car_name])
             matches[-1]['name'] = car_name
             matches[-1]['dist'] = match[0].dist
 
@@ -47,28 +53,33 @@ def search_cars(query):
 
 @app.route("/<string:origin>/<string:dest>/estimate")
 def estimate(origin, dest):
-    global LAST_BOUNDS
+    global ALL_CARS
 
     trip = Leg(origin, dest).waypoints()
 
     for i in range(len(trip)):
         trip[i] += (60,)
 
-    # start = np.array([ 40.142727, -105.101341 ])
-    # nw = start + np.array([ 1.6, -1.6 ])
-    # se = start + np.array([ -1.6, 1.6 ])
+    car = {
+        'mass_kg': 1536.36,
+        'avg_kwh_km': 5.51,
+        'regen_efficiency': 0.12,
+        'energy_kwh': 24,
+    }
 
-    # theta = np.random.uniform() * (3.14159 * 2)
+    print (request.cookies)
 
-    # trip = [(start[0], start[1], 60)]
-
-    # for i in range(40000):
-    #     theta += np.random.normal(0, 0.01)
-    #     wp = trip[-1]
-    #     trip.append((wp[0] + 0.0001 * np.cos(theta), wp[1] + 0.0001 * np.sin(theta), 60))
+    # try to load 
+    if 'car' in request.cookies:
+        car = ALL_CARS[request.cookies['car']]
+    else:
+        for key in car:
+            try:
+                car[key] = float(request.cookies.get(key))
+            except:
+                return error_response('Please select a car using the car shaped button, or enter specs for your own!', 410)
 
     nw, se = rohm.window_from_path(trip)
-    LAST_BOUNDS = (nw, se)
 
     d_lat = max(1, int((nw[0] - se[0]) * 200))
     d_lng = max(1, int((se[1] - nw[1]) * 200))
@@ -78,10 +89,10 @@ def estimate(origin, dest):
     estimated = rohm.estimate_path(
         trip=trip,
         size=(d_lng, d_lat),
-        mass_kg=1536.36,
-        avg_kwh_km=5.51,
-        regen_efficiency=0.12,
-        energy_kwh=24)
+        mass_kg=car['mass_kg'],
+        avg_kwh_km=car['avg_kwh_km'],
+        regen_efficiency=car['regen_efficiency'],
+        energy_kwh=car['energy_kwh'])
 
     return jsonify(estimated)
 
