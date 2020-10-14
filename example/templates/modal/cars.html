@@ -13,7 +13,7 @@
 
 <div class="rohm-ui-field">
 <label for="battery-size">Battery size (kwh)</label>
-<input id="text-battery-size" type="text" name="battery-size"/>	
+<input id="text-battery-size" type="text" name="battery-size"/>
 </div>
 
 <div class="rohm-ui-field">
@@ -23,7 +23,7 @@
 
 <div class="rohm-ui-field">
 <label for="regen-efficiency">Regen breaking efficiency (%)</label>
-<input id="text-regen-efficiency" type="text" name="regen-efficiency"/>	
+<input id="text-regen-efficiency" type="text" name="regen-efficiency"/>
 </div>
 </fieldset>
 
@@ -33,7 +33,7 @@
 
 	// $('#fieldset-specs')
 
-	$('#text-car-query').change((event) => {
+	$('#text-car-query').keypress((event) => {
 		console.log('searching for: ' + this.value);
 		$.get('/search/cars/' + this.value, (data) => {
 			console.log(data);
@@ -46,6 +46,14 @@
 			}
 		}, 'json');
 	});
+	$('#text-car-query').change((event) => {
+		document.cookie = "car=" + event.target.value;
+	});
+
+	$('#fieldset-specs').children('.rohm-ui-field').change((event) => {
+		document.cookie=event.target.name + '=' + event.target.value;
+	});
+
 
 	$('#button-accept').click(() => {
 		alert('accepted!');
