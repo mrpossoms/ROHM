@@ -42,15 +42,18 @@ RΩHM - Trip planner
 <div id="map"></div>
 
 <div id="rohm-ui-col" style="top:-180px">
-<img id="button-soc" class="rohm-button" src="/static/imgs/button-soc.svg"/>
+
+<div>
+	<img id="button-soc" class="rohm-button" src="/static/imgs/button-soc.svg"/>
+	<div id="slider-soc" class="rohm-slider">
+	<div class="rohm-slider-handle"></div>
+	</div>
+</div>
+
 <br/>
 <a href="/modal/cars" rel="modal:open">
 <img id="button-pick-car" class="rohm-button" src="/static/imgs/button-car.svg"/>
 </a>
-</div>
-
-<div class="rohm-slider" style="width:100%;background:green">
-<div class="rohm-slider-handle"></div>
 </div>
 
 </main>
@@ -65,7 +68,13 @@ RΩHM - Trip planner
 
 </body>
 <script type="text/javascript">
-	rohm.ui.make_slider('.rohm-slider');
+	rohm.ui.make_slider('#slider-soc', (event) => {
+
+	});
+
+	$('#button-soc').click(()=> {
+		$('#slider-soc').toggle();
+	});
 </script>
 	<script
 	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"

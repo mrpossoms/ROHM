@@ -84,26 +84,44 @@ rohm.estimate = {
 	}
 };
 
-rohm.ui.make_slider = (slider_query) => {
+rohm.ui.make_slider = (slider_query, on_change) => {
 	var holding = false;
 
 	var bar = $(slider_query);
 	var handle = bar.children('.rohm-slider-handle')
 	.mousedown((event) => {
-		console.log('down');
 		holding = true;
 	})
+	
+	bar.css({background: 'red'});
+
+	$('body')
 	.mouseup((event) => {
-		console.log('up');
 		holding = false;
 	})
 	.mousemove((event) => {
-		if (holding)
+		if (!holding) { return; }
+
+		const bar_pos = bar.position();
+		const x = event.pageX - bar_pos.left;
+		const pos = handle.position();
+
+		if (x >= 0 && x <= bar.width())
 		{
-			const pos = handle.position();
-			handle.css({top: pos.top, left: pos.left + event.offsetX - 8});
+			handle.css({top: bar.top, left: x - 8});
 		}
 
+		const value = x / bar.width();
+		bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
+
+		if ('function' === typeof(on_change))
+		{
+			on_change({
+				bar: bar,
+				handle: handle,
+				value: value
+			});
+		}
 	});
 };
 
