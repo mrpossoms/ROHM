@@ -2,7 +2,8 @@ var rohm = {
 	estimate: {},
 	ui: {
 		map: {},
-		error: {}
+		error: {},
+		make_slider: null
 	}
 };
 
@@ -58,7 +59,7 @@ rohm.estimate = {
 			else
 			{
 				rohm.ui.error.show("An error occurred while calculating route");
-			}	
+			}
 		});
 	},
 	clear: () => {
@@ -83,6 +84,28 @@ rohm.estimate = {
 	}
 };
 
+rohm.ui.make_slider = (slider_query) => {
+	var holding = false;
+
+	var bar = $(slider_query);
+	var handle = bar.children('.rohm-slider-handle')
+	.mousedown((event) => {
+		console.log('down');
+		holding = true;
+	})
+	.mouseup((event) => {
+		console.log('up');
+		holding = false;
+	})
+	.mousemove((event) => {
+		if (holding)
+		{
+			const pos = handle.position();
+			handle.css({top: pos.top, left: pos.left + event.offsetX - 8});
+		}
+
+	});
+};
 
 rohm.ui.error = {
 	show: (reason) => {
@@ -176,7 +199,7 @@ document.cookie_get = (key) => {
 			if (cookie[0] === key)
 			{
 				return cookie[1];
-			} 
+			}
 		}
 	}
 

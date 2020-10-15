@@ -53,3 +53,18 @@ a {
 	width: 90px;
 	height: 90px;
 }
+
+.rohm-slider {
+	height: 8px;
+}
+
+.rohm-slider-handle {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	margin-left: -8px;
+	margin-top: -8px;
+	border-radius: 8px;
+	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
+	background: white;
+}
