@@ -8,12 +8,6 @@ html {
 	max-width:256px;
 }
 
-.rohm-ui-field {
-    display: flex;
-    justify-content: space-between;
-    margin: .5rem;
-}
-
 h1, h2, h3, body, footer {
 	margin: 0 auto;
 }
@@ -57,13 +51,36 @@ a {
 	left: 100px;
 }
 
+.rohm-ui-field {
+    display: flex;
+    justify-content: space-between;
+    margin: .5rem;
+}
+
+.rohm-ui-soc-label {
+	position: absolute;
+	top: 50px;
+	left: 50%;
+	width: 100px;
+	margin-left: -50px;
+	padding: 5px;
+	z-index: 100;
+
+	text-align: center;
+
+    border-radius: 16px;
+    font-size: 36px;
+	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
+	background: white;
+}
+
 .rohm-button {
 	user-select: none;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 	-o-user-select: none;
-	
+
 	width: 90px;
 	height: 90px;
 }

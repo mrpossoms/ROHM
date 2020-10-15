@@ -106,10 +106,9 @@ rohm.ui.make_slider = (slider_query, on_change) => {
 		const x = event.pageX - bar_pos.left;
 		const pos = handle.position();
 
-		if (x >= 0 && x <= bar.width())
-		{
-			handle.css({top: bar.top, left: x - 8});
-		}
+		if (x < 0 || x > bar.width()) { return; }
+		
+		handle.css({top: bar.top, left: x - 8});
 
 		const value = x / bar.width();
 		bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})

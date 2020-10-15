@@ -39,6 +39,8 @@ RΩHM - Trip planner
 
 <main>
 
+<div class="rohm-ui-soc-label">0%</div>
+
 <div id="map"></div>
 
 <div id="rohm-ui-col" style="top:-180px">
@@ -69,7 +71,8 @@ RΩHM - Trip planner
 </body>
 <script type="text/javascript">
 	rohm.ui.make_slider('#slider-soc', (event) => {
-
+		document.cookie='soc='+event.value;
+		$('.rohm-ui-soc-label').text(parseInt(100 * event.value) + '%');
 	});
 
 	$('#button-soc').click(()=> {
