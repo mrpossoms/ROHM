@@ -70,6 +70,8 @@ RΩHM - Trip planner
 
 </body>
 <script type="text/javascript">
+	document.cookie='SameSite=Strict; Secure';
+
 	rohm.ui.make_slider('#slider-soc', (event) => {
 		document.cookie='soc='+event.value;
 		$('.rohm-ui-soc-label').text(parseInt(100 * event.value) + '%');

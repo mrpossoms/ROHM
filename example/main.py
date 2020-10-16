@@ -79,8 +79,16 @@ def estimate(origin, dest):
             except:
                 return error_response('Please select a car using the car shaped button, or enter specs for your own!', 410)
 
-    nw, se = rohm.window_from_path(trip)
+    # try to use the provided SoC
+    soc = 1
+    if 'soc' in request.cookies:
+        try:
+            soc = float(request.cookies['soc'])
+            soc = max(0, min(1, soc))
+        except:
+            return error_response('There was a problem with the charge level you have set.', 411)
 
+    nw, se = rohm.window_from_path(trip)
     d_lat = max(1, int((nw[0] - se[0]) * 200))
     d_lng = max(1, int((se[1] - nw[1]) * 200))
 
@@ -92,7 +100,7 @@ def estimate(origin, dest):
         mass_kg=car['mass_kg'],
         avg_kwh_km=car['avg_kwh_km'],
         regen_efficiency=car['regen_efficiency'],
-        energy_kwh=car['energy_kwh'])
+        energy_kwh=car['energy_kwh'] * soc)
 
     return jsonify(estimated)
 
