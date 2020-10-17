@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import rohm
-import json 
+import json
 from trip import Leg
 
 from flask import Flask
@@ -34,7 +34,7 @@ def search_cars(query):
 
     # evaluate closeness of string match against all cars
     for car_name in ALL_CARS:
-        match = find_near_matches("volkswagen", car_name, max_l_dist=1)
+        match = find_near_matches(query, car_name, max_l_dist=1)
 
         if len(match) > 0:
             matches.append(ALL_CARS[car_name])
@@ -69,14 +69,21 @@ def estimate(origin, dest):
 
     print (request.cookies)
 
-    # try to load 
-    if 'car' in request.cookies:
-        car = ALL_CARS[request.cookies['car']]
-    else:
-        for key in car:
-            try:
-                car[key] = float(request.cookies.get(key))
-            except:
+    # try to load
+    try:
+        if 'car' in request.cookies:
+            car = ALL_CARS[request.cookies['car']]
+    except:
+        return error_response('The car specified isn\'t in our records!', 409)
+
+
+    for key in car:
+        try:
+            car[key] = float(request.cookies.get(key))
+        except:
+            if 'car' in request.cookies:
+                pass
+            else:
                 return error_response('Please select a car using the car shaped button, or enter specs for your own!', 410)
 
     # try to use the provided SoC
@@ -100,7 +107,8 @@ def estimate(origin, dest):
         mass_kg=car['mass_kg'],
         avg_kwh_km=car['avg_kwh_km'],
         regen_efficiency=car['regen_efficiency'],
-        energy_kwh=car['energy_kwh'] * soc)
+        energy_kwh=car['energy_kwh'],
+        state_of_charge=soc)
 
     return jsonify(estimated)
 

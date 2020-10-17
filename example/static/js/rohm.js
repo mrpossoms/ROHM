@@ -84,44 +84,65 @@ rohm.estimate = {
 	}
 };
 
-rohm.ui.make_slider = (slider_query, on_change) => {
-	var holding = false;
+rohm.ui.slider = {
+	make: (slider_query, on_change) => {
+		var holding = false;
 
-	var bar = $(slider_query);
-	var handle = bar.children('.rohm-slider-handle')
-	.mousedown((event) => {
-		holding = true;
-	})
-	
-	bar.css({background: 'red'});
+		var bar = $(slider_query);
+		var handle = bar.children('.rohm-slider-handle')
+		.mousedown((event) => {
+			holding = true;
+			// alert('down');
+		})
 
-	$('body')
-	.mouseup((event) => {
-		holding = false;
-	})
-	.mousemove((event) => {
-		if (!holding) { return; }
+		bar.css({background: 'red'});
 
-		const bar_pos = bar.position();
-		const x = event.pageX - bar_pos.left;
-		const pos = handle.position();
+		$('body')
+		.mouseup((event) => {
+			holding = false;
+		})
+		.mousemove((event) => {
+			if (!holding) { return; }
 
-		if (x < 0 || x > bar.width()) { return; }
-		
-		handle.css({top: bar.top, left: x - 8});
+			const bar_pos = bar.position();
+			const x = event.pageX - bar_pos.left;
+			const pos = handle.position();
 
-		const value = x / bar.width();
-		bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
+			if (x < 0 || x > bar.width()) { return; }
 
-		if ('function' === typeof(on_change))
-		{
-			on_change({
-				bar: bar,
-				handle: handle,
-				value: value
-			});
-		}
-	});
+			handle.css({top: bar.top, left: x - 8});
+
+			const value = x / bar.width();
+			bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
+
+			if ('function' === typeof(on_change))
+			{
+				on_change({
+					bar: bar,
+					handle: handle,
+					value: value
+				});
+			}
+		});
+
+		return {
+			bar: bar,
+			handle: handle,
+			set: (value) => {
+				handle.css({top: bar.top, left: (value * bar.width()) - 8});
+				bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
+
+				if ('function' === typeof(on_change))
+				{
+					on_change({
+						bar: bar,
+						handle: handle,
+						value: value
+					});
+				}
+			}
+		};
+	}
 };
 
 rohm.ui.error = {

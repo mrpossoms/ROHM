@@ -41,8 +41,8 @@
 
 	{ // Setup the car query search box
 		$('#text-car-query').keypress((event) => {
-			console.log('searching for: ' + this.value);
-			$.get('/search/cars/' + this.value, (data) => {
+			console.log('searching for: ' + event.target.value);
+			$.get('/search/cars/' + event.target.value, (data) => {
 				console.log(data);
 
 				var matches = $('#list-car-matches').empty();
@@ -59,7 +59,7 @@
 		$('#text-car-query').each((i, e) => {
 			const val = document.cookie_get(e.name);
 			if (undefined !== val) { e.value = val; }
-		});		
+		});
 	}
 
 
@@ -71,7 +71,7 @@
 
 		$('#fieldset-specs').children('.rohm-ui-field').change((event) => {
 			document.cookie=event.target.name + '=' + event.target.value;
-		});		
+		});
 	}
 </script>
 

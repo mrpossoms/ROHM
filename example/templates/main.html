@@ -41,9 +41,14 @@ RΩHM - Trip planner
 
 <div class="rohm-ui-soc-label">0%</div>
 
+<div id="rohm-ui-location-group">
+<input id="textbox-origin" type="text" placeholder="from" class="rohm-ui-textbox" name="">
+<input id="textbox-destination" type="text" placeholder="to" class="rohm-ui-textbox" name="">
+</div>
+
 <div id="map"></div>
 
-<div id="rohm-ui-col" style="top:-180px">
+<div id="rohm-ui-col" style="top:-200px">
 
 <div>
 	<img id="button-soc" class="rohm-button" src="/static/imgs/button-soc.svg"/>
@@ -72,12 +77,12 @@ RΩHM - Trip planner
 <script type="text/javascript">
 	document.cookie='SameSite=Strict; Secure';
 
-	rohm.ui.make_slider('#slider-soc', (event) => {
+	rohm.ui.slider.make('#slider-soc', (event) => {
 		document.cookie='soc='+event.value;
 		$('.rohm-ui-soc-label').text(parseInt(100 * event.value) + '%');
-	});
+	}).set(document.cookie_get('soc'));
 
-	$('#button-soc').click(()=> {
+	$('#button-soc').click(() => {
 		$('#slider-soc').toggle();
 	});
 </script>

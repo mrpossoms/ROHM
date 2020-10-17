@@ -249,7 +249,7 @@ void rohm::estimate(
 	// setup start cell, begin estimation
 	size_t r, c;
 	coord_to_idx(map_c, map_r, params.win, params.origin, r, c);
-	data.map[r][c].energy_kwh = params.car.energy_kwh;
+	data.map[r][c].energy_kwh = params.car.energy_kwh * params.car.state_of_charge;
 	data.map[r][c].visited = 1;
 
 	if (!trip.is_empty())

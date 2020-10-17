@@ -2,6 +2,12 @@ html {
 	font-family: Sans-Serif;
 	color: #333;
 	background: #fff;
+
+	user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-o-user-select: none;
 }
 
 .logo {
@@ -17,7 +23,6 @@ h1, h2, h3 {
 }
 
 body {
-	max-width: 60em;
 	padding: 0;
 	background: #fff;
 }
@@ -51,10 +56,25 @@ a {
 	left: 100px;
 }
 
+#rohm-ui-location-group {
+	position: absolute;
+	z-index: 1;
+	padding: 5px;
+	top: 105px;
+	width: 100%;
+}
+
 .rohm-ui-field {
     display: flex;
     justify-content: space-between;
     margin: .5rem;
+}
+
+.rohm-ui-textbox {
+	border-radius: 8px;
+	font-size: 24px;
+	border: none;
+	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 }
 
 .rohm-ui-soc-label {
@@ -75,18 +95,13 @@ a {
 }
 
 .rohm-button {
-	user-select: none;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-	-webkit-user-select: none;
-	-o-user-select: none;
-
 	width: 90px;
 	height: 90px;
 }
 
 .rohm-slider {
 	height: 8px;
+	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 }
 
 .rohm-slider-handle {

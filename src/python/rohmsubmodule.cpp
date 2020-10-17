@@ -17,21 +17,23 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 		(char*)"mass_kg",
 		(char*)"avg_kwh_km",
 		(char*)"regen_efficiency",
-		(char*)"energy_kwh", 
+		(char*)"energy_kwh",
+		(char*)"state_of_charge",
 		NULL,
 	};
 
 	PyArg_ParseTupleAndKeywords(
 		args,
 		kwds,
-		"OOffff",
+		"OOfffff",
 		kw_names,
 		&trip_seq,
 		&map_size,
 		&CUR_CAR.mass_kg,
 		&CUR_CAR.avg_kwh_km,
 		&CUR_CAR.regen_efficiency,
-		&CUR_CAR.energy_kwh
+		&CUR_CAR.energy_kwh,
+		&CUR_CAR.state_of_charge
 	);
 
 	PyArg_ParseTuple(map_size, "II", &map_c, &map_r);

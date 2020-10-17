@@ -171,6 +171,7 @@ struct vehicle_params
 	float avg_kwh_km;
 	float regen_efficiency;
 	float energy_kwh;
+	float state_of_charge;
 	float mass_kg;
 	float c_drag;
 	float c_rolling_resistance;
