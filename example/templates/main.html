@@ -87,6 +87,23 @@ RΩHM - Trip planner
 	$('#button-soc').click(() => {
 		$('#slider-soc').toggle();
 	});
+
+	const do_route = () => {
+		const from = $('#textbox-origin').val();
+		const to = $('#textbox-destination').val();
+
+		if (from.length > 0 && to.length > 0)
+		{
+			rohm.estimate.make(from, to);
+		}
+	};
+
+	$('#textbox-origin').change(do_route);
+	$('#textbox-destination').change(do_route);
+
+	// $('body')
+	// .click(() => { $('#slider-soc').hide(); })
+	// .on('touchstart', () => { $('#slider-soc').hide(); });
 </script>
 	<script
 	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"
