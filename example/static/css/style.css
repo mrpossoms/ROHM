@@ -3,6 +3,8 @@ html {
 	color: #333;
 	background: #fff;
 
+	overflow-x: hidden;
+
 	user-select: none;
 	-moz-user-select: none;
 	-khtml-user-select: none;
@@ -23,6 +25,7 @@ h1, h2, h3 {
 }
 
 body {
+	position: relative;
 	padding: 0;
 	background: #fff;
 }
@@ -59,9 +62,11 @@ a {
 #rohm-ui-location-group {
 	position: absolute;
 	z-index: 1;
-	padding: 5px;
+	left: 50%;
 	top: 105px;
-	width: 100%;
+	width: 300px;
+	padding: 5px;
+	margin-left: -150px;
 }
 
 .rohm-ui-field {
@@ -71,6 +76,7 @@ a {
 }
 
 .rohm-ui-textbox {
+	width: 130px;
 	border-radius: 8px;
 	font-size: 24px;
 	border: none;

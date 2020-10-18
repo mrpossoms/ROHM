@@ -89,19 +89,13 @@ rohm.ui.slider = {
 		var holding = false;
 
 		var bar = $(slider_query);
-		var handle = bar.children('.rohm-slider-handle')
-		.mousedown((event) => {
-			holding = true;
-			// alert('down');
-		})
+		var handle = bar.children('.rohm-slider-handle');
 
 		bar.css({background: 'red'});
 
-		$('body')
-		.mouseup((event) => {
-			holding = false;
-		})
-		.mousemove((event) => {
+		const on_down = () => { holding = true; };
+		const on_up = (event) => { holding = false; };
+		const on_move = (event) => {
 			if (!holding) { return; }
 
 			const bar_pos = bar.position();
@@ -123,12 +117,24 @@ rohm.ui.slider = {
 					value: value
 				});
 			}
-		});
+		};
+
+		handle
+		.mousedown(on_down)
+		.on('touchstart', on_down);
+
+		$('body')
+		.mouseup(on_up)
+		.on('touchend', on_up)
+		.mousemove(on_move)
+		.on('touchmove', on_move);
 
 		return {
 			bar: bar,
 			handle: handle,
-			set: (value) => {
+			set: (value, default_val) => {
+				if (typeof(value) !== 'number') { value = default_val; }
+
 				handle.css({top: bar.top, left: (value * bar.width()) - 8});
 				bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
 

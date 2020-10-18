@@ -14,7 +14,9 @@
 <script type="text/javascript" src="/static/js/rohm.js"></script>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--<meta name="viewport" content="user-scalable=no; width=device-width, initial-scale=1.0"/>-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
 
 <title>
 RΩHM - Trip planner
@@ -42,8 +44,8 @@ RΩHM - Trip planner
 <div class="rohm-ui-soc-label">0%</div>
 
 <div id="rohm-ui-location-group">
-<input id="textbox-origin" type="text" placeholder="from" class="rohm-ui-textbox" name="">
-<input id="textbox-destination" type="text" placeholder="to" class="rohm-ui-textbox" name="">
+<input id="textbox-origin" type="text" placeholder="from" class="rohm-ui-textbox" style="float:left" name="">
+<input id="textbox-destination" type="text" placeholder="to" class="rohm-ui-textbox" style="float:right" name="">
 </div>
 
 <div id="map"></div>
@@ -80,7 +82,7 @@ RΩHM - Trip planner
 	rohm.ui.slider.make('#slider-soc', (event) => {
 		document.cookie='soc='+event.value;
 		$('.rohm-ui-soc-label').text(parseInt(100 * event.value) + '%');
-	}).set(document.cookie_get('soc'));
+	}).set(document.cookie_get('soc'), 1);
 
 	$('#button-soc').click(() => {
 		$('#slider-soc').toggle();
