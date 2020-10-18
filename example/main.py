@@ -128,5 +128,5 @@ if __name__ == '__main__':
     except KeyError:
         print('Not reloading view templates')
 
-    app.run(port=port, host='0.0.0.0', ssl_context='adhoc')
+    app.run(port=port, host='0.0.0.0')
 

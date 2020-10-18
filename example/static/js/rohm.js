@@ -55,10 +55,12 @@ rohm.estimate = {
 			if (e.responseJSON && e.responseJSON.error)
 			{
 				rohm.ui.error.show(e.responseJSON.error);
+				rohm.estimate.clear();
 			}
 			else
 			{
 				rohm.ui.error.show("An error occurred while calculating route");
+				rohm.estimate.clear();
 			}
 		});
 	},
