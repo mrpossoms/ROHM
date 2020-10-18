@@ -6,7 +6,7 @@ from trip import Leg
 
 from flask import Flask
 from flask import render_template, send_file, jsonify
-from flask import request, make_response
+from flask import request, make_response, send_from_directory
 
 app = Flask('ROHM', static_folder="static")
 LAST_BOUNDS = ()
@@ -20,6 +20,10 @@ def error_response(message, code):
 @app.route("/")
 def index():
     return render_template("main.html")
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static/imgs'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route("/modal/cars")
 def modal_cars():
