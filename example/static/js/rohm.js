@@ -170,7 +170,7 @@ rohm.ui.map = {
 	click: (event) => {
 		var ui = rohm.ui.map;
 
-		if (ui.waypoints.length >= 2)
+		if (ui.route_lines.length > 0)
 		{
 			rohm.estimate.clear();
 			return;
@@ -200,7 +200,9 @@ rohm.ui.map = {
 				lat: 0,
 				lng: 0
 			},
-			zoom: 8
+			zoom: 8,
+			mapTypeControl: false,
+			fullscreenControl: false
 		});
 
 		map.addListener('click', rohm.ui.map.click);
