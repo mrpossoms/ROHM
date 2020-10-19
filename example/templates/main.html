@@ -11,7 +11,8 @@
 // gtag('js', new Date());
 // gtag('config', 'UA-38933930-6');
 </script>
-<script type="text/javascript" src="/static/js/rohm.js"></script>
+<script type="text/javascript" src="/static/js/rohm.js">
+</script>
 
 <meta charset="UTF-8">
 <!--<meta name="viewport" content="user-scalable=no; width=device-width, initial-scale=1.0"/>-->
@@ -40,6 +41,9 @@ RΩHM - Trip planner
 </div>
 
 <main>
+
+<canvas class="rohm-ui-activity" width=32 height=32>
+</canvas>
 
 <div class="rohm-ui-soc-label">0%</div>
 
@@ -100,12 +104,13 @@ RΩHM - Trip planner
 
 	$('#textbox-origin').change(do_route);
 	$('#textbox-destination').change(do_route);
-
+	
+	var rohm_activity = rohm.ui.activity.make('canvas.rohm-ui-activity');
 </script>
-	<script
-	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"
-	  defer
-	></script>
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"
+  defer
+></script>
 
 </html>
 

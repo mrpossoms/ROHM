@@ -4,12 +4,24 @@ var rohm = {
 		map: {},
 		error: {},
 		make_slider: null
+	},
+	API: {}
+};
+
+rohm.API.get = (route, on_success) => {
+	{ //TODO: start activity indicator
+		
 	}
+	
+	return $.get(route, on_success)
+	.always(() => {
+		//TODO: stop activity indicator
+	});
 };
 
 rohm.estimate = {
 	make: (origin, destination) => {
-		$.get(origin + "/" + destination + "/estimate", function(data) {
+		rohm.API.get(origin + "/" + destination + "/estimate", (data) => {
 			console.log(data);
 
 			var map = rohm.ui.map.inst;
@@ -26,7 +38,7 @@ rohm.estimate = {
 				if (r.length < 2) { r += '0'; }
 
 				if (i == 0 || i == parseInt(data.length / 2) || soc == 0 || i ==
-	        data.length - 2)
+			data.length - 2)
 				{
 					var soc_marker = new google.maps.InfoWindow;
 					soc_marker.setPosition({lat: data[i][0], lng: data[i][1]});
@@ -148,6 +160,43 @@ rohm.ui.slider = {
 						value: value
 					});
 				}
+			}
+		};
+	}
+};
+
+rohm.ui.activity = {
+	make: (query) => {
+		var ctx = $(query)[0].getContext('2d');
+		var t = 0;
+		var ticker;
+
+		var animation = () => {
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+			ctx.fillRect(0, 0, 32, 32);
+
+			ctx.fillStyle = '#333';
+			ctx.beginPath();
+			ctx.arc(16 + Math.sin(6*t) * 10, 16 + Math.cos(6*t) * 10, 2, 0, 3.14159 * 2);
+			ctx.closePath();
+			ctx.stroke();
+			ctx.fill();
+
+			t += 16.0 / 1000.0;
+		};
+
+		return {
+			start: () => { ticker = setInterval(animation, 16); },
+			stop: () => {
+				clearInterval(ticker);
+				var frames = 60;
+				var clear_ticker = setInterval(() => {
+					ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+					ctx.fillRect(0, 0, 32, 32);
+					frames--;
+					if (frames == 0) { clearInterval(clear_ticker); }
+				}, 16);
+
 			}
 		};
 	}
