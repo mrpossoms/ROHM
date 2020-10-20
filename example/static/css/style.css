@@ -27,12 +27,11 @@ h1, h2, h3, body, footer {
 	margin: 0 auto;
 }
 
-h1, h2, h3 {
+h2, h3 {
 	color: #666;
 }
 
 body {
-	padding: 0;
 	background: #fff;
 }
 
@@ -42,8 +41,8 @@ a:visited > h1 {
 }
 
 a {
+	padding: 6px;
 	color: #000;
-	text-decoration: none;
 }
 
 #map {
@@ -75,6 +74,10 @@ a {
 	margin-left: -150px;
 }
 
+.rohm-ui-shadow {
+	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
+}
+
 .rohm-ui-field {
     display: flex;
     justify-content: space-between;
@@ -86,7 +89,6 @@ a {
 	border-radius: 8px;
 	font-size: 24px;
 	border: none;
-	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 }
 
 .rohm-ui-soc-label {

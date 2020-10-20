@@ -47,8 +47,6 @@ static PyObject* rohm_estimate_path(PyObject* self, PyObject* args, PyObject* kw
 	rohm::estimate_params params;
 	if (PySequence_Check(trip_seq))
 	{
-		printf("trip is sequence\n");
-
 		for (Py_ssize_t i = 0; i < PySequence_Length(trip_seq); i++)
 		{
 			double lat, lng, speed_km_h;
@@ -99,8 +97,6 @@ static PyObject* rohm_window_from_path(PyObject* self, PyObject* args)
 
 	if (PySequence_Check(trip_seq))
 	{
-		printf("trip is sequence\n");
-
 		for (Py_ssize_t i = 0; i < PySequence_Length(trip_seq); i++)
 		{
 			double lat, lng, speed;

@@ -2,6 +2,11 @@
 
 using namespace rohm;
 
+static void tiff_dummy_handler(const char* module, const char* fmt, va_list ap)
+{
+    // ignore errors and warnings (or handle them your own way)
+}
+
 topo::topo(const std::string& base_path, rohm::window win)
 {
     static const char* TILE_NAMES[2][4] = {
@@ -10,6 +15,8 @@ topo::topo(const std::string& base_path, rohm::window win)
     };
 
     int loaded_r = -1, loaded_c = -1;
+
+    TIFFSetWarningHandler(tiff_dummy_handler);
 
     for (size_t i = 0; i < 4; i++)
     { // load tiles
@@ -28,9 +35,6 @@ topo::topo(const std::string& base_path, rohm::window win)
         TIFFGetField(tiles[r][c], TIFFTAG_SAMPLESPERPIXEL, &samp_per_pixel);
 
         loaded_r = r; loaded_c = c;
-
-        printf("loaded tile: '%s'\n", path);
-        printf("bits_per_sample: %d samp_per_pixel: %d\n", bits_per_sample, samp_per_pixel);
     }
 
     line_buf = _TIFFmalloc(TIFFScanlineSize(tiles[loaded_r][loaded_c]));

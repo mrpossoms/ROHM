@@ -25,6 +25,9 @@ class Leg(object):
         points = polyline.decode(json_obj['routes'][0]['overview_polyline']['points'])
         return points
 
+    def __str__(self):
+        return 'Leg{} - origin: "{}", destination: "{}"'.format(id(self), self.origin, self.dest)
+
 
 if __name__ == '__main__':
     print(Leg('Longmont CO', 'Lyons CO').waypoints())

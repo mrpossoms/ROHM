@@ -220,8 +220,6 @@ void rohm::estimate(
 	{
 		params.win = window_from_trip(trip);
 		auto& win = data.map_win = params.win;
-
-		printf("window_from_path() -> { %f, %f } - { %f, %f }\n", win.nw.lat(), win.nw.lng(), win.se.lat(), win.se.lng());
 	}
 
 	rohm::topo topo("data", params.win);

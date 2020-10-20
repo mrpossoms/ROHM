@@ -2,11 +2,12 @@ import os
 import numpy as np
 import rohm
 import json
+import log
 from trip import Leg
 
 from flask import Flask
-from flask import render_template, send_file, jsonify
-from flask import request, make_response, send_from_directory
+from flask import render_template, send_file, jsonify, url_for
+from flask import request, make_response, send_from_directory, redirect
 
 app = Flask('ROHM', static_folder="static")
 LAST_BOUNDS = ()
@@ -17,9 +18,18 @@ def error_response(message, code):
     resp.status_code = code or 400
     return resp
 
+@app.route('/onboarding')
+def onboarding():
+    resp = make_response(render_template('onboarding.html'))
+    resp.set_cookie('onboarded', 'true')
+    return resp
+
 @app.route("/")
 def index():
-    return render_template("main.html")
+    if 'onboarded' not in request.cookies:
+        return redirect(url_for('onboarding'))
+
+    return render_template("app.html")
 
 @app.route('/favicon.ico')
 def favicon():
@@ -59,7 +69,8 @@ def search_cars(query):
 def estimate(origin, dest):
     global ALL_CARS
 
-    trip = Leg(origin, dest).waypoints()
+    leg = Leg(origin, dest)
+    trip = leg.waypoints()
 
     for i in range(len(trip)):
         trip[i] += (60,)
@@ -70,8 +81,6 @@ def estimate(origin, dest):
         'regen_efficiency': 0.12,
         'energy_kwh': 24,
     }
-
-    print (request.cookies)
 
     # try to load
     try:
@@ -103,16 +112,22 @@ def estimate(origin, dest):
     d_lat = max(1, int((nw[0] - se[0]) * 200))
     d_lng = max(1, int((se[1] - nw[1]) * 200))
 
-    print(d_lat, d_lng)
+    try:
+        log.info(str(leg))
+        estimated = rohm.estimate_path(
+            trip=trip,
+            size=(d_lng, d_lat),
+            mass_kg=car['mass_kg'],
+            avg_kwh_km=car['avg_kwh_km'],
+            regen_efficiency=car['regen_efficiency'],
+            energy_kwh=car['energy_kwh'],
+            state_of_charge=soc)
+    except:
+        log.error('A FATAL ERROR OCCURED FOR:')
+        log.error(str(leg))
+        log.error('WITH COOKIES:')
+        log.error(str(request.cookies))
 
-    estimated = rohm.estimate_path(
-        trip=trip,
-        size=(d_lng, d_lat),
-        mass_kg=car['mass_kg'],
-        avg_kwh_km=car['avg_kwh_km'],
-        regen_efficiency=car['regen_efficiency'],
-        energy_kwh=car['energy_kwh'],
-        state_of_charge=soc)
 
     return jsonify(estimated)
 
