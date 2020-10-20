@@ -16,7 +16,7 @@
 
 <meta charset="UTF-8">
 <!--<meta name="viewport" content="user-scalable=no; width=device-width, initial-scale=1.0"/>-->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1"/>
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1, minimum-scale=1"/>
 <meta name="apple-mobile-web-app-capable" content="yes" />
 
 <title>
@@ -30,7 +30,7 @@ RΩHM - Trip planner
 
 </head>
 
-<body class="container-fluid" style="padding: 0">
+<body style="padding: 0">
 
 <header class="row">
 <h1><center><a href="/">RΩHM</a><center></h1>
@@ -40,7 +40,8 @@ RΩHM - Trip planner
 	<p id="modal-error-text"></p>
 </div>
 
-<main>
+
+<div id="map"></div>
 
 <canvas class="rohm-ui-activity" width=32 height=32>
 </canvas>
@@ -51,8 +52,6 @@ RΩHM - Trip planner
 <input id="textbox-origin" type="text" placeholder="from" class="rohm-ui-textbox" style="float:left" name="">
 <input id="textbox-destination" type="text" placeholder="to" class="rohm-ui-textbox" style="float:right" name="">
 </div>
-
-<div id="map"></div>
 
 <div id="rohm-ui-col" style="top:-200px">
 
@@ -68,15 +67,13 @@ RΩHM - Trip planner
 </a>
 </div>
 
-</main>
 
 
-
-<footer>
+<!-- <footer>
 <center>
 © Kirk Roerig 2020
 </center>
-</footer>
+</footer> -->
 
 </body>
 <script type="text/javascript">

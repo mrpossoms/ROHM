@@ -4,12 +4,19 @@ html {
 	background: #fff;
 
 	overflow-x: hidden;
+	overflow-y: hidden;
 
 	user-select: none;
 	-moz-user-select: none;
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 	-o-user-select: none;
+
+
+	-webkit-transition: all 333ms ease-in-out;
+	-moz-transition: all 333ms ease-in-out;
+	-o-transition: all 333ms ease-in-out;
+	transition: all 333ms ease-in-out;
 }
 
 .logo {
@@ -25,7 +32,6 @@ h1, h2, h3 {
 }
 
 body {
-	position: relative;
 	padding: 0;
 	background: #fff;
 }
@@ -90,7 +96,7 @@ a {
 	width: 100px;
 	margin-left: -50px;
 	padding: 5px;
-	z-index: 100;
+	/*z-index: 100;*/
 
 	text-align: center;
 
@@ -122,8 +128,13 @@ a {
 }
 
 .rohm-ui-activity {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 100;
 	width: 32px;
 	height: 32px;
 	border-radius: 16px;
+	background: white;
 	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .3);
 }

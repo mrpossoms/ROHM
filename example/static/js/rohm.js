@@ -8,17 +8,13 @@ var rohm = {
 	API: {}
 };
 
-rohm.API.get = (route, on_success) => {
-	{ //TODO: start activity indicator
-		
-	}
-	
-	return $.get(route, on_success)
-	.always(() => {
-		//TODO: stop activity indicator
-	});
-};
 
+//-----------------------------------------------------------------------------
+//    ___    _   _            _       
+//   | __|__| |_(_)_ __  __ _| |_ ___ 
+//   | _|(_-<  _| | '  \/ _` |  _/ -_)
+//   |___/__/\__|_|_|_|_\__,_|\__\___|
+//                                    
 rohm.estimate = {
 	make: (origin, destination) => {
 		rohm.API.get(origin + "/" + destination + "/estimate", (data) => {
@@ -37,8 +33,7 @@ rohm.estimate = {
 				if (g.length < 2) { g += '0'; }
 				if (r.length < 2) { r += '0'; }
 
-				if (i == 0 || i == parseInt(data.length / 2) || soc == 0 || i ==
-			data.length - 2)
+				if (i == 0 || i == parseInt(data.length / 2) || soc == 0 || i == data.length - 2)
 				{
 					var soc_marker = new google.maps.InfoWindow;
 					soc_marker.setPosition({lat: data[i][0], lng: data[i][1]});
@@ -98,6 +93,12 @@ rohm.estimate = {
 	}
 };
 
+//-----------------------------------------------------------------------------
+//         _          _ _    _         
+//    _  _(_)      __| (_)__| |___ _ _ 
+//   | || | |  _  (_-< | / _` / -_) '_|
+//    \_,_|_| (_) /__/_|_\__,_\___|_|  
+//                                     
 rohm.ui.slider = {
 	make: (slider_query, on_change) => {
 		var holding = false;
@@ -165,9 +166,16 @@ rohm.ui.slider = {
 	}
 };
 
+//-----------------------------------------------------------------------------
+//         _               _   _     _ _        
+//    _  _(_)      __ _ __| |_(_)_ _(_) |_ _  _ 
+//   | || | |  _  / _` / _|  _| \ V / |  _| || |
+//    \_,_|_| (_) \__,_\__|\__|_|\_/|_|\__|\_, |
+//                                         |__/ 
 rohm.ui.activity = {
 	make: (query) => {
-		var ctx = $(query)[0].getContext('2d');
+		var canvas = $(query);
+		var ctx = canvas[0].getContext('2d');
 		var t = 0;
 		var ticker;
 
@@ -185,9 +193,15 @@ rohm.ui.activity = {
 			t += 16.0 / 1000.0;
 		};
 
+		canvas.hide();
+
 		return {
-			start: () => { ticker = setInterval(animation, 16); },
+			start: () => {
+				canvas.show();
+				ticker = setInterval(animation, 16);
+			},
 			stop: () => {
+				canvas.hide();
 				clearInterval(ticker);
 				var frames = 60;
 				var clear_ticker = setInterval(() => {
@@ -202,6 +216,12 @@ rohm.ui.activity = {
 	}
 };
 
+//-----------------------------------------------------------------------------
+//         _                           
+//    _  _(_)      ___ _ _ _ _ ___ _ _ 
+//   | || | |  _  / -_) '_| '_/ _ \ '_|
+//    \_,_|_| (_) \___|_| |_| \___/_|  
+//                                     
 rohm.ui.error = {
 	show: (reason) => {
 		$('#modal-error-text').text(reason);
@@ -212,6 +232,12 @@ rohm.ui.error = {
 	}
 };
 
+//-----------------------------------------------------------------------------
+//         _                       
+//    _  _(_)      _ __  __ _ _ __ 
+//   | || | |  _  | '  \/ _` | '_ \
+//    \_,_|_| (_) |_|_|_\__,_| .__/
+//                           |_|   
 rohm.ui.map = {
 	inst: null,
 	route_lines: [],
@@ -284,7 +310,7 @@ rohm.ui.map = {
 	}
 };
 
-
+//-----------------------------------------------------------------------------
 document.cookie_get = (key) => {
 	var cookies = document.cookie.split('; ');
 
@@ -301,4 +327,17 @@ document.cookie_get = (key) => {
 	}
 
 	return undefined;
+};
+
+//-----------------------------------------------------------------------------
+rohm.API.get = (route, on_success) => {
+	{ // start activity indicator
+		rohm_activity.start();
+	}
+	
+	return $.get(route, on_success)
+	.always(() => {
+		// stop activity indicator
+		rohm_activity.stop();
+	});
 };
