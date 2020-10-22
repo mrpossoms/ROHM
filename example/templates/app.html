@@ -73,6 +73,8 @@
 	$('#textbox-destination').change(do_route);
 	
 	var rohm_activity = rohm.ui.activity.make('canvas.rohm-ui-activity');
+
+	var car_callout = rohm.ui.callout.make('#button-pick-car', 'Get started by tapping this button to choose a car, or fill out your specs for a custom car');
 </script>
 <script
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"

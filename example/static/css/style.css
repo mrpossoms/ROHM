@@ -79,9 +79,9 @@ a {
 }
 
 .rohm-ui-field {
-    display: flex;
-    justify-content: space-between;
-    margin: .5rem;
+	display: flex;
+	justify-content: space-between;
+	margin: .5rem;
 }
 
 .rohm-ui-textbox {
@@ -89,6 +89,13 @@ a {
 	border-radius: 8px;
 	font-size: 24px;
 	border: none;
+}
+
+.rohm-ui-card {
+	position: absolute;
+	padding: 5px;
+	border-radius: 16px;
+	background: white;
 }
 
 .rohm-ui-soc-label {
@@ -102,8 +109,8 @@ a {
 
 	text-align: center;
 
-    border-radius: 16px;
-    font-size: 36px;
+	border-radius: 16px;
+	font-size: 36px;
 	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 	background: white;
 }

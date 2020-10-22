@@ -93,6 +93,46 @@ rohm.estimate = {
 	}
 };
 
+
+//-----------------------------------------------------------------------------
+rohm.ui.callout = {
+	make: (subject_query, message)=>{
+		var subject = $(subject_query);
+		var body = $('body');
+		const sub_pos = subject.position();
+		const sub_on_bottom = sub_pos.top > body.height() / 2;
+		const sub_on_right = sub_pos.left > body.width() / 2;
+
+
+		var callout = $('<p></p>')
+		.text(message)
+		.addClass('rohm-ui-shadow')
+		.addClass('rohm-ui-card')
+		.appendTo(body);
+
+		var co_left = sub_pos.left + subject.width();
+		var co_top = sub_pos.top;
+
+		if (sub_on_right)
+		{
+			co_left = sub_pos.left - callout.width();		
+		}
+
+		callout.css({left: co_left, top: co_top});
+
+		const dismiss = ()=> {
+			callout.remove();
+		};
+
+		callout.click(dismiss);
+
+		return {
+			callout: callout,
+			dismiss: dismiss
+		};
+	}
+};
+
 //-----------------------------------------------------------------------------
 //         _          _ _    _         
 //    _  _(_)      __| (_)__| |___ _ _ 
