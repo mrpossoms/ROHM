@@ -3,9 +3,9 @@
 {% block content %}
 <body style="padding: 0">
 
-<header class="row">
+<!-- <header class="row">
 <h1><center>RΩHM</center></h1>
-</header>
+</header> -->
 
 <div id="modal-error" class="modal">
 	<p id="modal-error-text"></p>
@@ -14,10 +14,17 @@
 
 <div id="map"></div>
 
+<img src="/static/imgs/RΩHM.svg" class="rohm-ui-logo"></img>
+
 <canvas class="rohm-ui-activity" width=32 height=32>
 </canvas>
 
+<div id="button-soc">
 <div class="rohm-ui-soc-label">0%</div>
+<div id="slider-soc" class="rohm-slider">
+<div class="rohm-slider-handle"></div>
+</div>	
+</div>
 
 <div id="rohm-ui-location-group">
 <input id="textbox-origin" type="text" placeholder="from" class="rohm-ui-textbox" style="float:left" name="">
@@ -26,16 +33,14 @@
 
 <div id="rohm-ui-col" style="top:-200px">
 
-<div>
-	<img id="button-soc" class="rohm-button" src="/static/imgs/button-soc.svg"/>
-	<div id="slider-soc" class="rohm-slider">
-	<div class="rohm-slider-handle"></div>
-	</div>
-</div>
-
-<a href="/modal/cars" rel="modal:open">
+<a href="/modal/cars" rel="modal:open" style="display: block">
 <img id="button-pick-car" class="rohm-button" src="/static/imgs/button-car.svg"/>
 </a>
+
+<a href="/modal/about" rel="modal:open" style="display: block">
+<img id="button-about" class="rohm-button" src="/static/imgs/button-about.svg"/>
+</a>
+
 </div>
 
 
@@ -49,9 +54,15 @@
 <script type="text/javascript">
 	document.cookie='SameSite=Strict; Secure';
 
-	rohm.ui.slider.make('#slider-soc', (event) => {
+	const soc_slider_change = (event) => {
 		document.cookie='soc='+event.value;
 		$('.rohm-ui-soc-label').text(parseInt(100 * event.value) + '%');
+	};
+
+	rohm.ui.slider.make('#slider-soc', {
+		is_vertical: true,
+		css: { height: '200px', left: '50%'},
+		on_change: soc_slider_change
 	}).set(document.cookie_get('soc'), 1);
 
 	$('#button-soc').click(() => {
@@ -74,7 +85,13 @@
 	
 	var rohm_activity = rohm.ui.activity.make('canvas.rohm-ui-activity');
 
-	var car_callout = rohm.ui.callout.make('#button-pick-car', 'Get started by tapping this button to choose a car, or fill out your specs for a custom car');
+	if (undefined === document.cookie_get('car'))
+	{
+		setTimeout(()=> {
+			$('#button-pick-car').click();
+		}, 3333);
+	}
+
 </script>
 <script
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKwDXQvVOVmEfgRHsT4ah6uEfNC76nymE&callback=rohm.ui.map.init&libraries=visualization"

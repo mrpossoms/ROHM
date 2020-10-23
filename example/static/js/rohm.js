@@ -18,8 +18,6 @@ var rohm = {
 rohm.estimate = {
 	make: (origin, destination) => {
 		rohm.API.get(origin + "/" + destination + "/estimate", (data) => {
-			console.log(data);
-
 			var map = rohm.ui.map.inst;
 
 			for (var i = 0; i < data.length - 1; i++)
@@ -43,8 +41,6 @@ rohm.estimate = {
 				}
 
 				if (soc <= 0) { break; }
-
-				console.log(data[i][2] + " #" + r + g + "00");
 
 				const route_path = new google.maps.Polyline({
 					path: route_coords,
@@ -140,33 +136,49 @@ rohm.ui.callout = {
 //    \_,_|_| (_) /__/_|_\__,_\___|_|  
 //                                     
 rohm.ui.slider = {
-	make: (slider_query, on_change) => {
+	make: (slider_query, opts) => {
 		var holding = false;
-
+		var hold_start_z = 0;
+		var start_z = 0;
 		var bar = $(slider_query);
 		var handle = bar.children('.rohm-slider-handle');
 
 		bar.css({background: 'red'});
 
-		const on_down = () => { holding = true; };
+		if (opts)
+		{
+			if (opts.is_vertical) { bar.css({width: '8px'}); }
+			else { bar.css({height: '8px'}); }
+
+			if (opts.css) { bar.css(opts.css); }
+		}
+
+		const on_down = (event) => { 
+			holding = true; 
+			hold_start_z = opts.is_vertical ? event.pageY : event.pageX;
+			start_z = opts.is_vertical ? handle.position().top : handle.position().left;
+		};
 		const on_up = (event) => { holding = false; };
 		const on_move = (event) => {
 			if (!holding) { return; }
 
 			const bar_pos = bar.position();
-			const x = event.pageX - bar_pos.left;
+			const dz = (opts.is_vertical ? event.pageY : event.pageX) - hold_start_z;
+			const limit = opts.is_vertical ? bar.height() : bar.width();
 			const pos = handle.position();
+			const z = start_z + dz;
 
-			if (x < 0 || x > bar.width()) { return; }
+			if (z < 0 || z > limit) { return; }
 
-			handle.css({top: bar.top, left: x - 8});
+			if (opts.is_vertical) { handle.css({left: (bar.width() / 2), top: z}); }
+			else { handle.css({top: bar.top, left: z - handle.width() / 2}); }
 
-			const value = x / bar.width();
+			const value = z / limit;
 			bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
 
-			if ('function' === typeof(on_change))
+			if (opts && 'function' === typeof(opts.on_change))
 			{
-				on_change({
+				opts.on_change({
 					bar: bar,
 					handle: handle,
 					value: value
@@ -190,12 +202,13 @@ rohm.ui.slider = {
 			set: (value, default_val) => {
 				if (typeof(value) !== 'number') { value = default_val; }
 
-				handle.css({top: bar.top, left: (value * bar.width()) - 8});
+				if (opts.is_vertical) { handle.css({left: (bar.width() / 2), top: bar.height() * value}); }
+				else { handle.css({top: bar.top, left: (bar.width() * value) - handle.width() / 2}); }
 				bar.css({background: 'rgb(' + parseInt(255 * (1 - value)) + ',' + parseInt(255 * value) + ', 0)'})
 
-				if ('function' === typeof(on_change))
+				if (opts && 'function' === typeof(opts.on_change))
 				{
-					on_change({
+					opts.on_change({
 						bar: bar,
 						handle: handle,
 						value: value
@@ -312,7 +325,10 @@ rohm.ui.map = {
 	},
 
 	init: () => {
-		var map = rohm.ui.map.inst = new google.maps.Map(document.getElementById("map"), {
+		var map_ele = $('#map');
+		map_ele.height(document.body.clientHeight);
+
+		var map = rohm.ui.map.inst = new google.maps.Map(map_ele[0], {
 			center: {
 				lat: 0,
 				lng: 0

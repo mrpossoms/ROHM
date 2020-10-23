@@ -35,9 +35,9 @@ def index():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/imgs'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route("/modal/cars")
-def modal_cars():
-    return render_template("modal/cars.html")
+@app.route("/modal/<string:modal>")
+def modal_cars(modal):
+    return render_template("modal/{}.html".format(modal))
 
 @app.route("/search/cars/<string:query>")
 def search_cars(query):

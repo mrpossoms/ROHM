@@ -19,8 +19,13 @@ html {
 	transition: all 333ms ease-in-out;
 }
 
-.logo {
-	max-width:256px;
+.rohm-ui-logo {
+    position: absolute;
+    top: 0;
+    width: 100px;
+    margin: 5px;
+
+    color: rgba(32, 32, 32, 128);
 }
 
 h1, h2, h3, body, footer {
@@ -59,16 +64,22 @@ a {
 #slider-soc {
 	position: absolute;
 	display: none;
-	top: 42px;
+}
+
+#button-soc {
+	position: absolute;
+	top: 10px;
+	left: 50%;
 	width: 100px;
-	left: 100px;
+
+	margin-left: -50px;
 }
 
 #rohm-ui-location-group {
 	position: absolute;
 	z-index: 1;
 	left: 50%;
-	top: 105px;
+	top: 65px;
 	width: 300px;
 	padding: 5px;
 	margin-left: -150px;
@@ -99,20 +110,13 @@ a {
 }
 
 .rohm-ui-soc-label {
-	position: absolute;
-	top: 50px;
-	left: 50%;
-	width: 100px;
-	margin-left: -50px;
-	padding: 5px;
-	/*z-index: 100;*/
-
 	text-align: center;
-
+	width: 100px;
 	border-radius: 16px;
 	font-size: 36px;
 	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 	background: white;
+	padding: 5px;
 }
 
 .rohm-button {
@@ -121,7 +125,6 @@ a {
 }
 
 .rohm-slider {
-	height: 8px;
 	box-shadow: 0 0 16px 1px rgba(0, 0, 0, .2);
 }
 
