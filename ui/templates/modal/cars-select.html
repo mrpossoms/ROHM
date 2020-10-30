@@ -1,0 +1,29 @@
+{% extends "modal/modal.html" %}
+
+{% block id %}modal-car-select{% endblock %}
+
+{% block title %}What are you driving?{% endblock %}
+
+{% block content %}
+<label for="brand">Brand:</label>
+<select id="brand">
+<option value="none">Pick a brand</option>
+</select>
+
+<a href="#" rel="modal:close">
+<button id="button-accept">Accept</button>
+</a>
+
+<script type="text/javascript">
+rohm.API.get('/api/vehicles/brands/', (data) => {
+	for (var i in data)
+	{
+		console.log(data[i]);
+		const brand = data[i].name;
+		$('#brand').append($('<option>').text(brand).attr('value', brand));
+	}
+});
+</script>
+
+{% endblock %}
+

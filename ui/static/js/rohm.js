@@ -17,7 +17,7 @@ var rohm = {
 //                                    
 rohm.estimate = {
 	make: (origin, destination) => {
-		rohm.API.get(origin + "/" + destination + "/estimate", (data) => {
+		rohm.API.get("api/" + origin + "/" + destination + "/estimate", (data) => {
 			var map = rohm.ui.map.inst;
 
 			for (var i = 0; i < data.length - 1; i++)

@@ -1,0 +1,50 @@
+{% extends "modal/modal.html" %}
+
+{% block id %}modal-car-select{% endblock %}
+
+{% block title %}Add a car{% endblock %}
+
+{% block content %}
+<fieldset id="fieldset-specs">
+
+<div class="rohm-ui-field">
+<label for="energy_kwh">Battery size (kwh)</label>
+<input id="text-energy_kwh" type="number" min=0 name="energy_kwh"/>
+</div>
+
+<div class="rohm-ui-field">
+<label for="avg_kwh_km">Average efficiency (mi/kwh)</label>
+<input id="text-avg_kwh_km" type="number" min=0.1 step=0.01 name="avg_kwh_km"/>
+</div>
+
+<div class="rohm-ui-field">
+<label for="mass_kg">Vehicle weight (kg)</label>
+<input id="text-mass_kg" type="number" min=1 name="mass_kg"/>
+</div>
+
+<div class="rohm-ui-field">
+<label for="regen_efficiency">Regen breaking efficiency (0% to 100%)</label>
+<input id="text-regen_efficiency" type="range" min=0 max=1 step=0.1 value=0.12 name="regen_efficiency"/>
+</div>
+
+</fieldset>
+
+<a href="#" rel="modal:close">
+<button id="button-accept">Accept</button>
+</a>
+
+<script type="text/javascript">
+	{ // Setup the manual input fields
+		$('#fieldset-specs .rohm-ui-field input').each((i, e) => {
+			const val = document.cookie_get(e.name);
+			if (undefined !== val) { e.value = val; }
+		});
+
+		$('#fieldset-specs').children('.rohm-ui-field').change((event) => {
+			document.cookie=event.target.name + '=' + event.target.value;
+		});
+	}
+</script>
+
+{% endblock %}
+
