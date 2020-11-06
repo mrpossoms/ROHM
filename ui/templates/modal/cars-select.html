@@ -5,24 +5,79 @@
 {% block title %}What are you driving?{% endblock %}
 
 {% block content %}
-<label for="brand">Brand:</label>
-<select id="brand">
-<option value="none">Pick a brand</option>
-</select>
+
+<table>
+<tr>
+	<td>
+	<select id="brand-picker" style="width:100%">
+	<option value="none">Pick a brand</option>
+	</select>
+	</td>
+
+	<td>
+	<select id="vehicle-picker" style="width:100%">
+	<option value="none">Pick a model</option>
+	</select>
+	</td>	
+</tr>
+</table>
 
 <a href="#" rel="modal:close">
 <button id="button-accept">Accept</button>
 </a>
 
 <script type="text/javascript">
-rohm.API.get('/api/vehicles/brands/', (data) => {
+rohm.API.get('/api/brand', (data) => {
 	for (var i in data)
 	{
-		console.log(data[i]);
 		const brand = data[i].name;
-		$('#brand').append($('<option>').text(brand).attr('value', brand));
+		$('#brand-picker').append(
+			$('<option>').text(brand)
+						 .attr('value', data[i].pk)
+						 .attr('auto', true)
+						 );
+	}
+
+	var brand = document.cookie_get('brand');
+	if (brand)
+	{
+		console.log('set brand');
+		$('#brand-picker > option[value=' + brand + ']')
+		.prop('selected', true);
+
+		$('#brand-picker').trigger("change").change();
 	}
 });
+
+$('#brand-picker').change((event) => {
+	console.log('changed ',  event);
+	$('#vehicle-picker option[auto=true]').remove();
+	rohm.API.get('/api/brand/' + event.target.value + '/vehicle', (data) => {
+		for (var i in data)
+		{
+			const disp_text = data[i].year + ' ' + data[i].model;
+			$('#vehicle-picker').append($('<option>')
+								.text(disp_text)
+								.attr('value', data[i].pk)
+								.attr('auto', true));
+		}
+
+		var vehicle = document.cookie_get('vehicle');
+		if (vehicle)
+		{
+			$('#vehicle-picker > option[value=' + vehicle + ']')
+			.prop('selected', true);
+		}
+	});
+});
+
+$('#brand-picker').change((event) => {
+	document.cookie='brand='+event.target.value;
+})
+
+$('#vehicle-picker').change((event) => {
+	document.cookie='vehicle='+event.target.value;
+})
 </script>
 
 {% endblock %}

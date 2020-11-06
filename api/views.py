@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.core import serializers
-from django.http import JsonResponse
+from django.http import HttpResponse
 from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 from .models import Brand, Vehicle
 from .serializers import VehicleSerializer, BrandSerializer
 
@@ -16,26 +17,50 @@ from .trip import Leg
 
 class BrandViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BrandSerializer
 
-    def list(self, request):
-    	queryset = Brand.objects.filter(approved=True)
-    	serializer = BrandSerializer(queryset, many=True)
-    	return Response(serializer.data)
+    # def get_serializer_class(self):
+    #     return BrandSerializer(self.get_queryset(), many=True)
+
+    def get_queryset(self):
+        queryset = Brand.objects.filter(approved=True)
+        return queryset
+
+    # def list(self, request):
+    	
+    # 	serializer = BrandSerializer(queryset, many=True)
+    # 	return Response(serializer.data)
 
 
 class VehicleViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
+    serializer_class = VehicleSerializer
 
-    def list(self, request):
-    	queryset = Vehicle.objects.filter(approved=True)
-    	serializer = VehicleSerializer(queryset, many=True, context={'request': request})
-    	return Response(serializer.data)
+    def get_queryset(self):
+        queryset = Vehicle.objects.filter(approved=True)
+        return queryset
+
+    # def list(self, request):
+    # 	queryset = Vehicle.objects.filter(approved=True)
+    # 	serializer = VehicleSerializer(queryset, many=True, context={'request': request})
+    # 	return Response(serializer.data)
+
+# def brand_list(request):
+#     queryset = Brand.objects.filter(approved=True)
+#     return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")
 
 
-def brand_vehicles(request, brand_str):
-    queryset = Vehicle.objects.filter(approved=True)
-    serializer = VehicleSerializer(queryset, many=True, context={'request': request})
-    return Response(serializer.data)
+# def brand_get(request, brand_pk):
+#     queryset = Brand.objects.filter(approved=True)
+#     return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")
+
+
+@api_view()
+def brand_vehicle_list(request, brand_str):
+    queryset = Vehicle.objects.filter(approved=True).filter(make__name = brand_str)
+    # serializer = VehicleSerializer(queryset, many=True, context={'request': request})
+    # return Response(serializer.data)
+    return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")
 
 def estimate(request, origin, dest):
     global ALL_CARS
