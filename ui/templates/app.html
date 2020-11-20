@@ -23,7 +23,7 @@
 <div class="rohm-ui-soc-label">0%</div>
 <div id="slider-soc" class="rohm-slider">
 <div class="rohm-slider-handle"></div>
-</div>	
+</div>
 </div>
 
 <div id="rohm-ui-location-group">
@@ -82,10 +82,10 @@
 
 	$('#textbox-origin').change(do_route);
 	$('#textbox-destination').change(do_route);
-	
+
 	var rohm_activity = rohm.ui.activity.make('canvas.rohm-ui-activity');
 
-	if (undefined === document.cookie_get('vehicle'))
+	if (!document.cookie_get('vehicle'))
 	{
 		setTimeout(()=> {
 			$('#button-pick-car').click();

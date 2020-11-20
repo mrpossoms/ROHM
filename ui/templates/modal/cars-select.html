@@ -18,7 +18,7 @@
 	<select id="vehicle-picker" style="width:100%">
 	<option value="none">Pick a model</option>
 	</select>
-	</td>	
+	</td>
 </tr>
 </table>
 
@@ -27,29 +27,7 @@
 </a>
 
 <script type="text/javascript">
-rohm.API.get('/api/brand', (data) => {
-	for (var i in data)
-	{
-		const brand = data[i].name;
-		$('#brand-picker').append(
-			$('<option>').text(brand)
-						 .attr('value', data[i].pk)
-						 .attr('auto', true)
-						 );
-	}
-
-	var brand = document.cookie_get('brand');
-	if (brand)
-	{
-		console.log('set brand');
-		$('#brand-picker > option[value=' + brand + ']')
-		.prop('selected', true);
-
-		$('#brand-picker').trigger("change").change();
-	}
-});
-
-$('#brand-picker').change((event) => {
+var on_brand_selected = (event) => {
 	console.log('changed ',  event);
 	$('#vehicle-picker option[auto=true]').remove();
 	rohm.API.get('/api/brand/' + event.target.value + '/vehicle', (data) => {
@@ -69,7 +47,31 @@ $('#brand-picker').change((event) => {
 			.prop('selected', true);
 		}
 	});
+};
+
+rohm.API.get('/api/brand', (data) => {
+	for (var i in data)
+	{
+		const brand = data[i].name;
+		$('#brand-picker').append(
+			$('<option>').text(brand)
+						 .attr('value', data[i].pk)
+						 .attr('auto', true)
+						 );
+	}
+
+	var brand = document.cookie_get('brand');
+	if (brand)
+	{
+		console.log('set brand');
+		$('#brand-picker > option[value=' + brand + ']')
+		.prop('selected', true);
+
+		on_brand_selected({target: { value: brand }});
+	}
 });
+
+$('#brand-picker').change(on_brand_selected);
 
 $('#brand-picker').change((event) => {
 	document.cookie='brand='+event.target.value;
