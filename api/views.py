@@ -27,7 +27,7 @@ class BrandViewSet(viewsets.ModelViewSet):
         return queryset
 
     # def list(self, request):
-    	
+
     # 	serializer = BrandSerializer(queryset, many=True)
     # 	return Response(serializer.data)
 

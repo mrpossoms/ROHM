@@ -16,7 +16,7 @@ brands_router.register(r'vehicle', views.VehicleViewSet, basename='brand-vehicle
 urlpatterns = [
     path(r'', include(router.urls)),
     path(r'', include(brands_router.urls)),
-    # path('brand', views.brand_list),
+    path('brand', views.BrandViewSet),
     # path('brand/<int:brand_pk>', views.brand_get),
     # path('brand/<int:brand_pk>/vehicle', views.brand_vehicle_list),
     path('<str:origin>/<str:dest>/estimate', views.estimate, name='estimate')
