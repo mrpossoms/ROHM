@@ -6,8 +6,9 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name="index"),
+    path('cars/add/', views.add),
     path('modal/<str:modal_name>', views.modal, name="modal"),
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html')),
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('accounts/profile/', views.profile),
     # path('accounts/', include('django.contrib.auth.urls')),
 ]
