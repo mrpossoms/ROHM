@@ -24,6 +24,3 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return '{} {} {}'.format(self.year, self.make, self.model)
-
-class VehicleAddForm(forms.Form):
-    brand = forms.CharField(label="Brand", max_length=32)

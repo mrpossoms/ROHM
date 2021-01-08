@@ -3,6 +3,11 @@
 {% block title %}Add a car{% endblock %}
 
 {% block content %}
+
+<form action="/cars/add/" method="post">
+
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
 <fieldset id="fieldset-specs">
 
 <div class="rohm-ui-field">
@@ -38,22 +43,8 @@
 
 </fieldset>
 
-<a href="#" rel="modal:close">
-<button id="button-accept">Accept</button>
-</a>
-
-<script type="text/javascript">
-	{ // Setup the manual input fields
-		// $('#fieldset-specs .rohm-ui-field input').each((i, e) => {
-		// 	const val = document.cookie_get(e.name);
-		// 	if (undefined !== val) { e.value = val; }
-		// });
-
-		// $('#fieldset-specs').children('.rohm-ui-field').change((event) => {
-		// 	document.cookie=event.target.name + '=' + event.target.value;
-		// });
-	}
-</script>
+<input type="submit" value="Accept"></input>
+</form>
 
 {% endblock %}
 

@@ -54,7 +54,7 @@ table {
 	width: 100%;
 }
 
-select, button {
+select, button, input[type=submit] {
 	border-radius: 5px;
 	padding: 5px;
 	margin: 8px;
