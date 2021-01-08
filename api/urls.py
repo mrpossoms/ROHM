@@ -19,5 +19,6 @@ urlpatterns = [
     path('brand', views.BrandViewSet),
     # path('brand/<int:brand_pk>', views.brand_get),
     # path('brand/<int:brand_pk>/vehicle', views.brand_vehicle_list),
-    path('<str:origin>/<str:dest>/estimate', views.estimate, name='estimate')
+    path('<str:origin>/<str:dest>/estimate', views.estimate, name='estimate'),
+    path('cars/add/', views.car_add, name='add car')
 ]

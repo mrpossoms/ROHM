@@ -1,12 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django import forms
 
 class Brand(models.Model):
     approved = models.BooleanField(null=True)
     name = models.CharField(max_length=32)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    
+
     def __str__(self):
         return self.name
 
@@ -24,3 +24,6 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return '{} {} {}'.format(self.year, self.make, self.model)
+
+class VehicleAddForm(forms.Form):
+    brand = forms.CharField(label="Brand", max_length=32)

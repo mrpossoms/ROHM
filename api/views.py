@@ -5,7 +5,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Brand, Vehicle
+from .models import Brand, Vehicle, VehicleAddForm
 from .serializers import VehicleSerializer, BrandSerializer
 
 import numpy as np
@@ -61,6 +61,20 @@ def brand_vehicle_list(request, brand_str):
     # serializer = VehicleSerializer(queryset, many=True, context={'request': request})
     # return Response(serializer.data)
     return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")
+
+@api_view()
+def car_add(request):
+    if request.method == 'POST':
+        form = VehicleAddForm(request.POST)
+
+        if form.is_valid():
+            pass
+        else:
+
+
+    Brand.objects.filter(name=)
+    return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")
+
 
 def estimate(request, origin, dest):
     global ALL_CARS
