@@ -23,9 +23,16 @@ def add(request):
         form = VehicleAddForm(request.POST)
 
         if form.is_valid():
-            print(form.cleaned_data)
+            data = form.cleaned_data
             # TODO create the car and brand if applicable
-            Brand.objects.filter(name=form.cleaned_data['brand'])
+            brand_count = len(Brand.objects.filter(name=data['brand']))
+
+            if brand_count == 0:
+                # this brand has not yet been added, lets add it
+
+                pass
+
+            print('{} brands with the name {}'.format(brand_count, brand_name))
         else:
             print('Form was invalid')
 
