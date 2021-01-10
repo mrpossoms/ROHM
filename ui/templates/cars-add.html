@@ -4,6 +4,10 @@
 
 {% block content %}
 
+{% if message %}
+<p class="rohm-card rohm-ui-shadow rohm-{{message.type}}">{{message.text}}</p>
+{% endif %}
+
 <form action="/cars/add/" method="post">
 
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

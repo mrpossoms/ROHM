@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.core import serializers
 from django.http import HttpResponse
+from django.db.models import Q
+from django.contrib.auth import get_user
 from rest_framework import viewsets, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -23,13 +25,14 @@ class BrandViewSet(viewsets.ModelViewSet):
     #     return BrandSerializer(self.get_queryset(), many=True)
 
     def get_queryset(self):
-        queryset = Brand.objects.filter(approved=True)
+        me = get_user(self.request)
+        queryset = Brand.objects.filter(Q(approved=True) | Q(user=me))
         return queryset
 
     # def list(self, request):
-
-    # 	serializer = BrandSerializer(queryset, many=True)
-    # 	return Response(serializer.data)
+    #     me = get_user(request)
+    #     serializer = BrandSerializer(Brand.objects.filter(Q(approved=True) | Q(user=me)), many=True)
+    #     return Response(serializer.data)
 
 
 class VehicleViewSet(viewsets.ModelViewSet):
@@ -41,9 +44,9 @@ class VehicleViewSet(viewsets.ModelViewSet):
         return queryset
 
     # def list(self, request):
-    # 	queryset = Vehicle.objects.filter(approved=True)
-    # 	serializer = VehicleSerializer(queryset, many=True, context={'request': request})
-    # 	return Response(serializer.data)
+    #   queryset = Vehicle.objects.filter(approved=True)
+    #   serializer = VehicleSerializer(queryset, many=True, context={'request': request})
+    #   return Response(serializer.data)
 
 # def brand_list(request):
 #     queryset = Brand.objects.filter(approved=True)
@@ -57,7 +60,8 @@ class VehicleViewSet(viewsets.ModelViewSet):
 
 @api_view()
 def brand_vehicle_list(request, brand_str):
-    queryset = Vehicle.objects.filter(approved=True).filter(make__name = brand_str)
+    me = get_user(request)
+    queryset = Vehicle.objects.filter(Q(approved=True) | Q(user=me)).filter(make__name = brand_str)
     # serializer = VehicleSerializer(queryset, many=True, context={'request': request})
     # return Response(serializer.data)
     return HttpResponse(serializers.serialize('json', queryset), content_type="application/json")

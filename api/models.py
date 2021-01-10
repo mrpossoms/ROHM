@@ -18,7 +18,7 @@ class Vehicle(models.Model):
     year = models.PositiveSmallIntegerField()
 
     energy_kwh = models.FloatField()
-    avg_economy_kwh_km = models.FloatField()
+    avg_kwh_km = models.FloatField()
     mass_kg = models.FloatField()
     regen_efficiency = models.FloatField()
 

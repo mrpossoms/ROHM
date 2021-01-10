@@ -12,4 +12,4 @@ class BrandSerializer(serializers.HyperlinkedModelSerializer):
 class VehicleSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = Vehicle
-		fields = ['pk', 'make', 'model', 'year', 'energy_kwh', 'avg_economy_kwh_km', 'mass_kg', 'regen_efficiency']
+		fields = ['pk', 'make', 'model', 'year', 'energy_kwh', 'avg_kwh_km', 'mass_kg', 'regen_efficiency']

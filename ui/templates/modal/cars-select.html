@@ -51,7 +51,7 @@ var on_brand_selected = (event) => {
 	});
 };
 
-rohm.API.get('/api/brand', (data) => {
+rohm.API.get('/api/brand/', (data) => {
 	for (var i in data)
 	{
 		const brand = data[i].name;

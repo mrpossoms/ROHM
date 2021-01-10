@@ -121,6 +121,28 @@ select, button, input[type=submit] {
 	border: none;
 }
 
+.rohm-card {
+	padding: 5px;
+	margin: 10px;
+	border-radius: 16px;
+	background: white;
+}
+
+.rohm-success {
+	background-color: #27ae60;
+	color: #ffffff; 
+}
+
+.rohm-warning {
+	background-color: #f1c40f;
+	color: #ffffff; 
+}
+
+.rohm-error {
+	background-color:  #e74c3c;
+	color: #ffffff; 
+}
+
 .rohm-ui-card {
 	position: absolute;
 	padding: 5px;
