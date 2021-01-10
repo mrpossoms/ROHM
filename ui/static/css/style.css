@@ -1,7 +1,7 @@
 html {
 	font-family: Sans-Serif;
 	color: #333;
-	background: #fff;
+	background: #fafafa;
 
 	overflow-x: hidden;
 	overflow-y: hidden;
@@ -36,8 +36,14 @@ h2, h3 {
 	color: #666;
 }
 
+header {
+	padding: 5px;
+	margin: 0;
+	background: #fff;	
+}
+
 body {
-	background: #fff;
+	/*background: #fff;*/
 }
 
 a:visited > h1 {
@@ -63,6 +69,14 @@ select, button, input[type=submit] {
 	appearance: none;
 	border: solid 0px black;
 	box-shadow: 0 0 4px 1px rgba(0, 0, 0, .2);
+}
+
+fieldset {
+	border: none;
+	padding: 5px;
+	margin: 10px;
+	border-radius: 16px;
+	background: white;
 }
 
 #map {

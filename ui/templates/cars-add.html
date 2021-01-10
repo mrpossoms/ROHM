@@ -1,28 +1,23 @@
 {% extends "page.html" %}
 
-{% block title %}Add a car{% endblock %}
-
-{% block content %}
+{% block body %}
 
 {% if message %}
 <p class="rohm-card rohm-ui-shadow rohm-{{message.type}}">{{message.text}}</p>
 {% endif %}
 
+<h2>Add a vehicle</h2>
+
 <form action="/cars/add/" method="post">
 
 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
-<fieldset id="fieldset-specs">
+<fieldset id="fieldset-specs" class="rohm-ui-shadow">
 
 <div class="rohm-ui-field">
 <input type="text" style="width: 30%" name="brand" placeholder="Brand"/>
 <input type="text" style="width: 30%" name="model" placeholder="Model name"/>
-<input type="number" style="width: 30%" name="year" min=2000 step=1 value="2020" />
-</div>
-
-
-<div class="rohm-ui-field">
-
+<input type="number" style="width: 30%" name="year" min=2000 step=1 value="{{ year }}" />
 </div>
 
 <div class="rohm-ui-field">
@@ -31,7 +26,7 @@
 </div>
 
 <div class="rohm-ui-field">
-<label for="avg_kwh_km">Average efficiency (mi/kwh)</label>
+<label for="avg_kwh_km">Average efficiency (km/kwh)</label>
 <input id="text-avg_kwh_km" type="number" min=0.1 step=0.01 name="avg_kwh_km"/>
 </div>
 

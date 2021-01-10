@@ -1,7 +1,14 @@
 {% extends "main.html" %}
 
+{% block content %}
 <header>
-<img src="RΩHM.svg"/>
+<ol>
+<li><a href="/"><img src="/static/imgs/RΩHM.svg"/></a></li>
+<li><a href="/accounts/profile">Profile</a></li>
+</ol>
 </header>
 
-{% block content %}{% endblock %}
+<body test="attrib">
+{% block body %}{% endblock %}
+</body>
+{% endblock %}

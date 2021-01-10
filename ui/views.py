@@ -1,9 +1,11 @@
 from django.apps import apps
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import loader
-from django.contrib.auth import get_user
+from django.contrib.auth import get_user, logout
 from django.contrib.auth.decorators import login_required
 from .models import VehicleAddForm
+
+from datetime import datetime as dt
 
 Brand = apps.get_model('api', 'Brand')
 Vehicle = apps.get_model('api', 'Vehicle')
@@ -65,7 +67,8 @@ def add(request):
                     'message': {
                         'type': 'success',
                         'text': 'Your {} {} {} has been added!'.format(vehicle.year, brand.name, vehicle.model),
-                    }
+                    },
+                    'year': dt.today().year
                 })
             else:
                 vehicle = vehicle_match[0]
@@ -74,18 +77,24 @@ def add(request):
                 'message': {
                     'type': 'warning',
                     'text': 'The {} {} {} already exists.'.format(vehicle.year, brand.name, vehicle.model),
-                }
+                },
+                'year': dt.today().year
             })
         else:
             return render(request, 'cars-add.html', { 
                 'message': {
                     'type': 'error',
                     'text': 'Please correct your entries below and try again.',
-                }
+                },
+                'year': dt.today().year
             })
 
-    return render(request, 'cars-add.html', {})
+    return render(request, 'cars-add.html', {'year': dt.today().year})
 
 
 def profile(request):
     return render(request, 'profile.html', { 'user': get_user(request) })
+
+def logout_view(request):
+    logout(request)
+    return redirect('/')
